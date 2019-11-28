@@ -28,20 +28,23 @@ void print_matrix(int m[SIZE][SIZE])
 
 int main(int argc, char *argv[])
 {
-  const int T = 4;
-  int i, j, k;
+  const int T = 1;
+  int i, j, k, sum;
 
   fill_matrix(A);
   fill_matrix(B);
 
   inicio = omp_get_wtime();
 
-  #pragma omp parallel for num_threads(T) private(i, j, k) schedule(dynamic, 1)
-  for (i=0; i<SIZE; i++) 
+  for (i=0; i<SIZE; i++)
     for (j=0; j<SIZE; j++) {
-      C[i][j]=0;
+      sum = 0;
+
+      #pragma omp parallel for num_threads(T) private(k) reduction(+:sum)
       for (k=0; k<SIZE; k++)
-	      C[i][j] += A[i][k]*B[k][j];
+	      sum += A[i][k]*B[k][j];
+
+      C[i][j] = sum;
     }
 
   fim = omp_get_wtime();
