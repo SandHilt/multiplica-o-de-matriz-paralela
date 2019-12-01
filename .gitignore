@@ -56,3 +56,6 @@ dkms.conf
 
 # Virtualenv
 env/
+
+# Dados
+*.dat

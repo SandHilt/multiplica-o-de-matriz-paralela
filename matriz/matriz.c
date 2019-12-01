@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <omp.h>
 
-#define SIZE 100 /* Max Size of matrices */
+#define SIZE 500 /* Max Size of matrices */
 
 int A[SIZE][SIZE], B[SIZE][SIZE], C[SIZE][SIZE];
 double inicio, fim;
@@ -33,10 +33,10 @@ int main(int argc, char *argv[])
 
   if (argc == 2)
   {
-    reps = atoi(argv[2]);
+    reps = atoi(argv[1]);
   }
 
-  FILE *saida = fopen("saida.dat", "a");
+  FILE *saida = fopen("./saida.dat", "w");
 
   if (!saida)
   {
@@ -68,7 +68,7 @@ int main(int argc, char *argv[])
     fim = omp_get_wtime();
     // print_matrix(C);
 
-    fprintf(saida, "%.5fs.\n", fim - inicio);
+    fprintf(saida, "%.5f\n", fim - inicio);
   }
 
   fclose(saida);
