@@ -33,10 +33,10 @@ int main(int argc, char *argv[])
 
   if (argc == 2)
   {
-    reps = argv[2];
+    reps = atoi(argv[2]);
   }
 
-  FILE *saida = fopen('saida.dat', "a");
+  FILE *saida = fopen("saida.dat", "a");
 
   if (!saida)
   {
@@ -58,7 +58,7 @@ int main(int argc, char *argv[])
       {
         sum = 0;
 
-        #pragma omp parallel for num_threads(T) private(k) shared(sum) schedule(static) reduction(+:sum)
+        #pragma omp parallel for num_threads(T) private(k) schedule(static) reduction(+:sum)
         for (k = 0; k < SIZE; k++)
           sum += A[i][k] * B[k][j];
 
