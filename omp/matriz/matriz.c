@@ -28,7 +28,9 @@ void print_matrix(int m[SIZE][SIZE])
 
 int main(int argc, char *argv[])
 {
-  const int T = 1;
+  const int T = 2;
+  const int U = 2;
+
   int i, j, k, sum;
 
   fill_matrix(A);
@@ -37,13 +39,16 @@ int main(int argc, char *argv[])
   inicio = omp_get_wtime();
 
   for (i = 0; i < SIZE; i++)
-    #pragma omp for num_threads(T)
+    #pragma omp parallel for num_threads(U)
     for (j = 0; j < SIZE; j++)
     {
-      C[i][j] = 0;
+      sum = 0;
 
+      #pragma omp parallel for num_threads(T) reduction(+:sum)
       for (k = 0; k < SIZE; k++)
-        C[i][j] += A[i][k] * B[k][j];
+        sum += A[i][k] * B[k][j];
+
+      C[i][j] = sum;
     }
 
   fim = omp_get_wtime();

@@ -1,18 +1,31 @@
 #! python3
-from statistics import mean
 from matplotlib import use, pyplot as plt
 import numpy as np
 
-f = open('omp/matriz/saida.dat', 'r')
 
-data = []
+def ler_arquivo(file):
+    data = []
 
-# Mostando o que tem no arquivo
-for x in f.readlines():
-    y = float(x)
-    data.append(y)
+    for x in file.readlines():
+        data.append(float(x))
 
-plt.boxplot(data, vert=False)
+    return data
+
+
+boxdata = []
+
+for prefixo in ['serial']:
+    for N in ['1000']:
+        name = '_'.join([N, prefixo])
+        f = open('omp/matriz/saida_{:s}.dat'.format(name), 'r')
+        data = ler_arquivo(f)
+        boxdata.append(data)
+
+        print('media', round(np.mean(data), 5))
+        print('desvio_padrao_amostral', round(np.std(data, ddof=1), 5))
+
+
+plt.boxplot(boxdata, vert=False)
 plt.grid(True)
 plt.show()
 
