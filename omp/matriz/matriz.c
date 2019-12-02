@@ -37,12 +37,11 @@ int main(int argc, char *argv[])
   inicio = omp_get_wtime();
 
   for (i = 0; i < SIZE; i++)
+    #pragma omp for num_threads(T)
     for (j = 0; j < SIZE; j++)
     {
       C[i][j] = 0;
 
-      // #pragma omp parallel for \
-      //   num_threads(T) private(k) schedule(static) reduction(+ : sum)
       for (k = 0; k < SIZE; k++)
         C[i][j] += A[i][k] * B[k][j];
     }
