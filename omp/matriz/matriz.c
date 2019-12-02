@@ -1,8 +1,7 @@
 #include <stdio.h>
-#include <stdlib.h>
 #include <omp.h>
 
-#define SIZE 500 /* Max Size of matrices */
+#define SIZE 1000 /* Max Size of matrices */
 
 int A[SIZE][SIZE], B[SIZE][SIZE], C[SIZE][SIZE];
 double inicio, fim;
@@ -40,14 +39,12 @@ int main(int argc, char *argv[])
   for (i = 0; i < SIZE; i++)
     for (j = 0; j < SIZE; j++)
     {
-      sum = 0;
+      C[i][j] = 0;
 
-      #pragma omp parallel for \
-        num_threads(T) private(k) schedule(static) reduction(+ : sum)
+      // #pragma omp parallel for \
+      //   num_threads(T) private(k) schedule(static) reduction(+ : sum)
       for (k = 0; k < SIZE; k++)
-        sum += A[i][k] * B[k][j];
-
-      C[i][j] = sum;
+        C[i][j] += A[i][k] * B[k][j];
     }
 
   fim = omp_get_wtime();
