@@ -12,7 +12,8 @@ for x in f.readlines():
     y = float(x)
     data.append(y)
 
-plt.boxplot(data)
+plt.boxplot(data, vert=False)
+plt.grid(True)
 plt.show()
 
 f.close()
