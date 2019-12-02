@@ -14,7 +14,7 @@ def ler_arquivo(file):
 
 boxdata = []
 
-for prefixo in ['serial']:
+for prefixo in ['serial', 'serialsum', 'paralela1for', 'paralela2for']:
     for N in ['1000']:
         name = '_'.join([N, prefixo])
         f = open('omp/matriz/saida_{:s}.dat'.format(name), 'r')
