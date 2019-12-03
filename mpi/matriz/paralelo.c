@@ -3,7 +3,7 @@
 #include <math.h>
 #include <mpi.h>
 
-#define SIZE 4			/* Max Size of matrices */
+#define SIZE 4 /* Max Size of matrices */
 
 int A[SIZE][SIZE], B[SIZE][SIZE], C[SIZE][SIZE];
 
@@ -30,73 +30,79 @@ void print_matrix(int m[SIZE][SIZE])
 
 int main(int argc, char *argv[])
 {
-  int numtasks, rank, dest, source, tag = 1;
+  int numtasks, rank, dest, source, tag;
   int inmsg, outmsg;
 
   double start, end;
 
-  FILE *saida;
+  FILE *saida = fopen("./saida.dat", "w");
 
   fill_matrix(A);
   fill_matrix(B);
 
-  printf("antes do loop\n");
+  MPI_Status State;
+  MPI_Init(&argc, &argv);
 
-  for (int i = 0; i < SIZE; i++)
-    for (int j = 0; j < SIZE; j++)
+  MPI_Comm_size(MPI_COMM_WORLD, &numtasks);
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+
+  if (rank == 0)
+  {
+    source = MPI_ANY_SOURCE;
+    tag = MPI_ANY_TAG;
+
+    start = MPI_Wtime();
+
+    for (int i = 0; i < SIZE; i++)
     {
-      MPI_Status State;
-      MPI_Init(&argc, &argv);
-
-      MPI_Comm_size(MPI_COMM_WORLD, &numtasks);
-      MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-
-      printf("Alo do rank %d", rank);
-
-      if (rank == 0)
+      for (int j = 0; j < SIZE; j++)
       {
         int sum = 0;
-
-        source = MPI_ANY_SOURCE;
-        tag = MPI_ANY_TAG;
-
-        start = MPI_Wtime();
-        saida = fopen("./saida.dat", "w");
-
-        for (int p = 0, q = SIZE * SIZE; p < q; p++)
+        for (int k = 0; k < SIZE; k++)
         {
           MPI_Recv(&inmsg, 1, MPI_INT, source, tag, MPI_COMM_WORLD, &State);
           sum += inmsg;
           fprintf(saida, "Soma parcial %d com %d", sum, inmsg);
         }
-
         C[i][j] = sum;
       }
-      else
-      {
-        dest = 0;
-        tag = rank;
-        outmsg = 0;
+    }
+  }
+  else
+  {
+    dest = 0;
+    source = 0;
+    outmsg = 0;
+    tag = rank;
 
-        printf("Vou comecar %d de %d", rank, numtasks);
-        int part = (int)floor(SIZE / (numtasks - 1));
-        printf("%d", part);
+    int part = (int)floor(SIZE / (numtasks - 1));
+
+    int inicio_part = (rank - 1) * part;
+    int fim_part = rank * part;
+
+    for (int i = inicio_part; i < fim_part; i++)
+    {
+      for (int j = inicio_part; j < fim_part; j++)
+      {
 
         for (int k = (rank - 1) * part; k < rank * part; k++)
         {
           outmsg = A[i][k] * B[k][j];
           MPI_Send(&outmsg, 1, MPI_INT, dest, tag, MPI_COMM_WORLD);
         }
-      }
-      if (rank == 0)
-      {
-        end = MPI_Wtime();
-        fprintf(saida, "%.5fs", end - start);
-      }
 
-      MPI_Finalize();
+        MPI_Recv(&inmsg, 1, MPI_INT, source, MPI_ANY_TAG, MPI_COMM_WORLD, &State);
+      }
     }
+  }
 
+  if (rank == 0)
+  {
+    end = MPI_Wtime();
+    fprintf(saida, "%.5fs", end - start);
+  }
+
+  MPI_Finalize();
   fclose(saida);
   print_matrix(C);
 
