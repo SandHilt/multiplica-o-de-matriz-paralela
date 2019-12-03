@@ -62,7 +62,9 @@ int main(int argc, char *argv[])
         dest = 0;
         tag = rank;
 
-        for(int i = 0; i < SIZE; i++) {
+        // TODO: loop de um inicio ate uma certa parte
+        // for(int i = 0; i < SIZE; i++) {
+        // }
 
         }
       }
