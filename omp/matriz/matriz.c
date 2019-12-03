@@ -28,7 +28,7 @@ void print_matrix(int m[SIZE][SIZE])
 
 int main(int argc, char *argv[])
 {
-  const int T = 1;
+  const int T = 2;
 
   int i, j, k, sum;
 
@@ -42,7 +42,7 @@ int main(int argc, char *argv[])
     {
       sum = 0;
 
-      #pragma omp parallel for num_threads(T)
+      #pragma omp parallel for num_threads(T) reduction(+:sum)
       for (k = 0; k < SIZE; k++)
         sum += A[i][k] * B[k][j];
 
