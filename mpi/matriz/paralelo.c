@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 #include <mpi.h>
 
 #define SIZE 4			/* Max Size of matrices */
@@ -25,7 +26,6 @@ void print_matrix(int m[SIZE][SIZE])
     printf("|");
   }
 }
-
 
 int main(int argc, char *argv[])
 {
@@ -55,28 +55,30 @@ int main(int argc, char *argv[])
         tag = MPI_ANY_TAG;
 
         start = MPI_Wtime();
-        for(int i = 0; i < numtasks - 1; i++){
-
+        
+        for(int p = 0, q = SIZE * SIZE; p < q; p++) {
+          MPI_Recv(&inmsg, 1, MPI_INT, source, tag, MPI_COMM_WORLD, &State);
+          sum += inmsg;
         }
+
+        C[i][j] = sum;
       } else {
         dest = 0;
         tag = rank;
+        outmsg = 0;
 
-        // TODO: loop de um inicio ate uma certa parte
-        // for(int i = 0; i < SIZE; i++) {
-        // }
+        int part =  (int)floor(SIZE / (numtasks - 1));
 
+        for (int k = (rank - 1) * part; k < rank * part; k++)
+        {
+          outmsg = A[i][k] * B[k][j];
+          MPI_Send(&outmsg, 1, MPI_INT, dest, tag, MPI_COMM_WORLD);
         }
       }
       if(rank == 0){
         end = MPI_Wtime();
         fprintf(saida, "%.5f", end - start);
       }
-
-      // for (int k=0; k<SIZE; k++)
-	    //   sum += A[i][k]*B[k][j];
-
-      // C[i][j]=sum;
 
       MPI_Finalize();
     }
