@@ -36,7 +36,7 @@ int main(int argc, char *argv[])
 
   MPI_Status State;
 
-  FILE *saida = fopen('./saida.dat', 'w');
+  FILE *saida = fopen("./saida.dat", "w");
 
   fill_matrix(A);
   fill_matrix(B);
