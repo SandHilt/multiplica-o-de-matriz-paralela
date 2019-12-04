@@ -1,9 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <math.h>
 #include <mpi.h>
 
-#define SIZE 3 /* Max Size of matrices */
+#define SIZE 4 /* Max Size of matrices */
 
 int A[SIZE][SIZE], B[SIZE][SIZE], C[SIZE][SIZE];
 
@@ -71,7 +70,7 @@ int main(int argc, char *argv[])
     tag = MPI_ANY_TAG;
     inmsg = (int *)calloc(3, sizeof(int));
 
-    saida = fopen("./saida.dat", "w");
+    saida = fopen("./paralelo.dat", "a");
 
     start = MPI_Wtime();
 
@@ -83,8 +82,10 @@ int main(int argc, char *argv[])
       int i = inmsg[1];
       int j = inmsg[2];
 
+      #ifdef DEBUG
       fprintf(saida, "\nrank: %d C[%d,%d] = %d + %d\n",
               State.MPI_SOURCE, i, j, C[i][j], value);
+      #endif
 
       C[i][j] += value;
     }
@@ -98,8 +99,6 @@ int main(int argc, char *argv[])
     {
       for (int j = 0; j < SIZE; j++)
       {
-        //printf("\nrank: %d, i: %d, j: %d\n", rank, i, j);
-
         outmsg = (int *)calloc(3, sizeof(int));
 
         outmsg[1] = i;
@@ -120,7 +119,7 @@ int main(int argc, char *argv[])
   if (rank == 0)
   {
     end = MPI_Wtime();
-    fprintf(saida, "%.5fs", end - start);
+    fprintf(saida, "%.5f", end - start);
     fclose(saida);
     print_matrix(C);
   }
