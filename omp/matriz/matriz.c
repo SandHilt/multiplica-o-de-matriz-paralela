@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <omp.h>
 
 #define SIZE 100 /* Max Size of matrices */
@@ -28,7 +29,7 @@ void print_matrix(int m[SIZE][SIZE])
 
 int main(int argc, char *argv[])
 {
-  const int T = 2;
+  const int T = atoi(argv[1]);
 
   int i, j, k, sum;
 

@@ -1,1 +1,0 @@
-mpirun --use-hwthread-cpus paralelo.out

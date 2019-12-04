@@ -1,5 +1,7 @@
 #! python3
 from matplotlib import use, pyplot as plt
+from itertools import product
+
 import numpy as np
 
 
@@ -13,12 +15,17 @@ def ler_arquivo(file):
 
 
 boxdata = []
+parallel = list(product(['omp', 'mpi'], [2, 4]))
 
-for estilo in ['serial', 'mpi', 'omp']:
-    for projeto in ['matriz']:
-        f = open('{:s}/{:s}/saida.dat'.format(
-            estilo, projeto
-        ), 'r')
+for projeto in ['matriz']:
+    for estilo in ['serial'] + parallel:
+        if estilo == 'serial':
+            filename = '{:s}_{:s}.dat'.format(projeto, estilo)
+        else:
+            filename = '{:s}_{:s}_{:d}.dat'.format(
+                projeto, estilo[0], estilo[1])
+
+        f = open(filename, 'r')
         data = ler_arquivo(f)
         boxdata.append(data)
 

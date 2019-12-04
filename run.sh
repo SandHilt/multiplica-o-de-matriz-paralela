@@ -1,15 +1,19 @@
 #!/bin/bash
 echo "Script esta rodando...";
-for i in {1..30}
+for i in {1..3}
 do
     printf '%s\n' --------------------;
     echo "Teste $i"
     echo "Rodando o serial";
-    ./serial/matriz/serial.out >> ./serial.dat;
-    echo "Rodando o MPI com 2 CPUS";
-    mpirun -np 2 ./mpi/matriz/matriz.out >> ./mpi_2.dat;
-    echo "Rodando o MPI com 4 CPUS";
-    mpirun --use-hwthread-cpus -np 4 ./mpi/matriz/matriz.out >> ./mpi_4.dat;
+    ./serial/matriz/serial.out >> ./matriz_serial.dat;
+    
+    for i in 2 4
+    do
+        echo "Rodando o MPI com $i CPUS";
+        mpirun --use-hwthread-cpus -np $i ./mpi/matriz/matriz.out >> ./matriz_mpi_$i.dat;
+        echo "Rodando o OMP com $i CPUS";
+        ./omp/matriz/matriz.out $i >> ./matriz_omp_$i.dat
+    done
 done
 printf '%s\n' --------------------;
 echo "🍺 Rodei todos os testes";
