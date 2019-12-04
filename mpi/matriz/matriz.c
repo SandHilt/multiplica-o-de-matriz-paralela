@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <mpi.h>
 
-#define SIZE 4 /* Max Size of matrices */
+#define SIZE 100 /* Max Size of matrices */
 
 int A[SIZE][SIZE], B[SIZE][SIZE], C[SIZE][SIZE];
 
@@ -59,7 +59,6 @@ int main(int argc, char *argv[])
   {
     MPI_Abort(MPI_COMM_WORLD, MPI_ERR_SIZE);
   }
-  
 
   /**
    * Os processos serao sincronizados no primeiro processo
@@ -74,7 +73,7 @@ int main(int argc, char *argv[])
 
     start = MPI_Wtime();
 
-    for (int k = 0, r = SIZE * SIZE * (numtasks-1); k < r; k++)
+    for (int k = 0, r = SIZE * SIZE * (numtasks - 1); k < r; k++)
     {
       MPI_Recv(inmsg, 3, MPI_INT, source, tag, MPI_COMM_WORLD, &State);
 
@@ -82,10 +81,10 @@ int main(int argc, char *argv[])
       int i = inmsg[1];
       int j = inmsg[2];
 
-      #ifdef DEBUG
+#ifdef DEBUG
       fprintf(saida, "\nrank: %d C[%d,%d] = %d + %d\n",
               State.MPI_SOURCE, i, j, C[i][j], value);
-      #endif
+#endif
 
       C[i][j] += value;
     }
@@ -119,12 +118,12 @@ int main(int argc, char *argv[])
   if (rank == 0)
   {
     end = MPI_Wtime();
-    // fprintf(saida, "%.5f", end - start);
-    // fclose(saida);
-    print_matrix(C);
+    // fprintf(saida,"%.5f", end - start);
+    printf("%.5f\n", end - start);
   }
 
   MPI_Finalize();
+  // print_matrix(C);
 
   return 0;
 }

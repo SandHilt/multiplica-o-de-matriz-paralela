@@ -1,7 +1,13 @@
 SUBDIRS := $(wildcard omp/matriz/.) $(wildcard mpi/matriz/.)\
 	$(wildcard serial/matriz/.)
 
-all: clear $(SUBDIRS)
+america: clear
+great: all
+
+again:
+	./run.sh
+
+all: $(SUBDIRS)
 
 $(SUBDIRS):
 	$(MAKE) -C $@ clean all 
