@@ -8,4 +8,4 @@ matriz: matriz.c
 	$(CC) $(FLAGS) matriz.c -o matriz.out
 
 clean:
-	rm -rf *.out *.dat
+	rm -rf *.out
