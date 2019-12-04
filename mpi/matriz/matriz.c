@@ -33,7 +33,7 @@ int main(int argc, char *argv[])
 
   double start, end;
 
-  FILE *saida;
+  // FILE *saida;
 
   fill_matrix(A);
   fill_matrix(B);
@@ -70,7 +70,7 @@ int main(int argc, char *argv[])
     tag = MPI_ANY_TAG;
     inmsg = (int *)calloc(3, sizeof(int));
 
-    saida = fopen("./paralelo.dat", "a");
+    // saida = fopen("./matriz.dat", "a");
 
     start = MPI_Wtime();
 
@@ -119,8 +119,8 @@ int main(int argc, char *argv[])
   if (rank == 0)
   {
     end = MPI_Wtime();
-    fprintf(saida, "%.5f", end - start);
-    fclose(saida);
+    // fprintf(saida, "%.5f", end - start);
+    // fclose(saida);
     print_matrix(C);
   }
 

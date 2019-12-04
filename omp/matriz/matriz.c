@@ -21,7 +21,7 @@ void print_matrix(int m[SIZE][SIZE])
   {
     printf("\n\t| ");
     for (int j = 0; j < SIZE; j++)
-      printf("%2d ", m[i][j]);
+      printf("%5d ", m[i][j]);
     printf("|");
   }
 }
