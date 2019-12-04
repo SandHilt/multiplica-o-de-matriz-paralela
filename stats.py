@@ -29,6 +29,7 @@ for projeto in ['matriz']:
         data = ler_arquivo(f)
         boxdata.append(data)
 
+        print('Para o {:s}:'.format(str(estilo)))
         print('media', round(np.mean(data), 5))
         print('desvio_padrao_amostral', round(np.std(data, ddof=1), 5))
 
