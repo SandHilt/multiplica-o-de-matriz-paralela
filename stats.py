@@ -1,9 +1,9 @@
 #! python3
 from matplotlib import use, pyplot as plt
 from itertools import product
+from sys import argv
 
 import numpy as np
-
 
 def ler_arquivo(file):
     data = []
@@ -36,6 +36,7 @@ for projeto in ['matriz']:
 
 plt.boxplot(boxdata, labels=['serial'] + parallel, vert=False)
 plt.grid(True)
+plt.title("Tamanho {:s}".format(argv[1]))
 plt.savefig('./boxplot.png')
 plt.show()
 

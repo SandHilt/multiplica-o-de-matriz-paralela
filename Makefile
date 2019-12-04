@@ -1,16 +1,16 @@
 SUBDIRS := $(wildcard omp/matriz/.) $(wildcard mpi/matriz/.)\
 	$(wildcard serial/matriz/.)
 
-SIZE=100
+SIZE=1000
 export SIZE
 
-NUMBER_TESTS=5
+NUMBER_TESTS=30
 
 america: clear
 great: all
 
 again:
-	./run.sh $(NUMBER_TESTS)
+	./run.sh $(NUMBER_TESTS) $(SIZE)
 
 all: $(SUBDIRS)
 

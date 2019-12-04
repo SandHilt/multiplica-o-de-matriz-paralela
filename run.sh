@@ -20,4 +20,4 @@ echo "🍺 Rodei todos os testes";
 
 printf '%s\n' --------------------;
 echo "Rodando estatisticas"
-./env/bin/python stats.py
+./env/bin/python stats.py $2
