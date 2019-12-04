@@ -3,7 +3,7 @@
 #include <math.h>
 #include <mpi.h>
 
-#define SIZE 4 /* Max Size of matrices */
+#define SIZE 3 /* Max Size of matrices */
 
 int A[SIZE][SIZE], B[SIZE][SIZE], C[SIZE][SIZE];
 
@@ -23,14 +23,13 @@ void print_matrix(int m[SIZE][SIZE])
   {
     printf("\n\t| ");
     for (j = 0; j < SIZE; j++)
-      printf("%2d ", m[i][j]);
+      printf("%5d ", m[i][j]);
     printf("|");
   }
 }
 int main(int argc, char *argv[])
 {
   int numtasks, rank, dest, source, tag;
-  int part;
   int *inmsg, *outmsg;
 
   double start, end;
@@ -41,7 +40,7 @@ int main(int argc, char *argv[])
   fill_matrix(B);
 
   /**
-   * Limpando o vetor
+   * Limpando o matriz
    * */
   for (int i = 0; i < SIZE; i++)
   {
@@ -57,8 +56,6 @@ int main(int argc, char *argv[])
   MPI_Comm_size(MPI_COMM_WORLD, &numtasks);
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
-  part = (int)floor(SIZE / (numtasks - 1));
-
   /**
    * Os processos serao sincronizados no primeiro processo
    * */
@@ -72,7 +69,7 @@ int main(int argc, char *argv[])
 
     start = MPI_Wtime();
 
-    for (int k = 0, r = SIZE * part; k < r; k++)
+    for (int k = 0, r = SIZE * SIZE * (numtasks-1); k < r; k++)
     {
       MPI_Recv(inmsg, 3, MPI_INT, source, tag, MPI_COMM_WORLD, &State);
 
@@ -80,8 +77,9 @@ int main(int argc, char *argv[])
       int i = inmsg[1];
       int j = inmsg[2];
 
-      fprintf(saida, "Soma parcial %d com %d\n", C[i][j], value);
-      
+      fprintf(saida, "\nrank: %d C[%d,%d] = %d + %d\n",
+              State.MPI_SOURCE, i, j, C[i][j], value);
+
       C[i][j] += value;
     }
   }
@@ -90,21 +88,18 @@ int main(int argc, char *argv[])
     dest = 0;
     tag = rank;
 
-    int inicio_part = (rank - 1) * part;
-    int fim_part = rank * part;
-
-    printf("%d %d\n", inicio_part, fim_part);
-
-    for (int i = inicio_part; i < fim_part; i++)
+    for (int i = 0; i < SIZE; i++)
     {
-      for (int j = inicio_part; j < fim_part; j++)
+      for (int j = 0; j < SIZE; j++)
       {
+        //printf("\nrank: %d, i: %d, j: %d\n", rank, i, j);
+
         outmsg = (int *)calloc(3, sizeof(int));
 
         outmsg[1] = i;
         outmsg[2] = j;
 
-        for (int k = inicio_part; k < fim_part; k++)
+        for (int k = rank - 1; k < SIZE; k += numtasks - 1)
         {
           outmsg[0] += A[i][k] * B[k][j];
         }
