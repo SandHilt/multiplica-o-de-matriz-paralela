@@ -33,8 +33,9 @@ for projeto in ['matriz']:
         print('desvio_padrao_amostral', round(np.std(data, ddof=1), 5))
 
 
-plt.boxplot(boxdata, vert=False)
+plt.boxplot(boxdata, labels=['serial'] + parallel, vert=False)
 plt.grid(True)
+plt.savefig('./boxplot.png')
 plt.show()
 
 f.close()
