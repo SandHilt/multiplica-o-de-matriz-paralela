@@ -19,7 +19,7 @@ parallel = ["_".join([x, y]) for x in ['mpi', 'omp'] for y in ['2', '4']]
 estilos = ['serial'] + parallel
 size = " "
 
-if argv.count == 2:
+if len(argv) == 2:
     size = argv[1]
 
 serial = 0
