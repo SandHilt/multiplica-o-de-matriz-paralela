@@ -56,6 +56,12 @@ int main(int argc, char *argv[])
   MPI_Comm_size(MPI_COMM_WORLD, &numtasks);
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
+  if (numtasks < 2)
+  {
+    MPI_Abort(MPI_COMM_WORLD, MPI_ERR_SIZE);
+  }
+  
+
   /**
    * Os processos serao sincronizados no primeiro processo
    * */
