@@ -15,4 +15,4 @@ $(SUBDIRS):
 .PHONY: all $(SUBDIRS)
 
 clear:
-	rm -rf *.dat
+	rm -rf *.dat *.png
