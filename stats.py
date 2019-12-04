@@ -17,9 +17,14 @@ def ler_arquivo(file):
 boxdata = []
 parallel = ["_".join([x, y]) for x in ['mpi', 'omp'] for y in ['2', '4']]
 estilos = ['serial'] + parallel
+size = " "
+
+if argv.count == 2:
+    size = argv[1]
 
 serial = 0
 speedup = []
+eficiencia = []
 
 for projeto in ['matriz']:
     for estilo in estilos:
@@ -33,7 +38,12 @@ for projeto in ['matriz']:
         if estilo == 'serial':
             serial = np.mean(data)
         else:
-            speedup.append(serial / np.mean(data))
+            sp = serial / np.mean(data)
+            proc = int(estilo[-1])
+
+            speedup.append(sp)
+            eficiencia.append(sp / proc * 100)
+
 
         print('Para o {:s}:'.format(str(estilo)))
         print('media', round(np.mean(data), 5))
@@ -41,19 +51,25 @@ for projeto in ['matriz']:
         print("-"*20)
 
 
+plt.subplot(1,2,1)
+
 plt.boxplot(boxdata, labels=estilos, vert=False)
 plt.grid(True)
 plt.xlabel("Tempo (s)")
-plt.title("Tamanho {:s}".format(argv[1]))
+plt.title("Tempos de execucao {:s}".format(size))
+
+
+plt.subplot(2,2,2)
+plt.title("Speedup")
+plt.barh(parallel, speedup)
+
+
+plt.subplot(2,2,4)
+plt.title("Eficiência")
+plt.bar(parallel, eficiencia)
+
 plt.savefig('./boxplot.png')
 plt.show()
 
-# plt.figure()
-# plt.barh(parallel, range(4))
-# plt.show()
-
 # speedup = tempo_sequencial / mean(tempos_paralelos)
 # eficiencia = speedup / processadores * 100
-
-# print('speedup', speedup)
-# print('eficiencia', eficiencia)
