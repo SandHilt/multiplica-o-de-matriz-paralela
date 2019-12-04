@@ -2,7 +2,9 @@
 #include <stdlib.h>
 #include <omp.h>
 
+#ifndef SIZE
 #define SIZE 100 /* Max Size of matrices */
+#endif
 
 int A[SIZE][SIZE], B[SIZE][SIZE], C[SIZE][SIZE];
 double inicio, fim;

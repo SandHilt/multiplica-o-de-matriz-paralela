@@ -2,7 +2,9 @@
 #include <stdlib.h>
 #include <mpi.h>
 
+#ifndef SIZE
 #define SIZE 100 /* Max Size of matrices */
+#endif
 
 int A[SIZE][SIZE], B[SIZE][SIZE], C[SIZE][SIZE];
 
@@ -32,8 +34,6 @@ int main(int argc, char *argv[])
   int *inmsg, *outmsg;
 
   double start, end;
-
-  // FILE *saida;
 
   fill_matrix(A);
   fill_matrix(B);
@@ -68,8 +68,6 @@ int main(int argc, char *argv[])
     source = MPI_ANY_SOURCE;
     tag = MPI_ANY_TAG;
     inmsg = (int *)calloc(3, sizeof(int));
-
-    // saida = fopen("./matriz.dat", "a");
 
     start = MPI_Wtime();
 
@@ -118,7 +116,6 @@ int main(int argc, char *argv[])
   if (rank == 0)
   {
     end = MPI_Wtime();
-    // fprintf(saida,"%.5f", end - start);
     printf("%.5f\n", end - start);
   }
 

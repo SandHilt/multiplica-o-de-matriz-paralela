@@ -1,6 +1,6 @@
 #!/bin/bash
 echo "Script esta rodando...";
-for i in {1..3}
+for i in $(eval echo {1.."$1"})
 do
     printf '%s\n' --------------------;
     echo "Teste $i"
