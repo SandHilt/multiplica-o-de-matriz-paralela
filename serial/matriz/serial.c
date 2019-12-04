@@ -31,7 +31,7 @@ int main(int argc, char *argv[])
 {
   clock_t inicio, fim;
   double duracao;
-  FILE *saida;
+  // FILE *saida;
 
   fill_matrix(A);
   fill_matrix(B);
@@ -50,9 +50,9 @@ int main(int argc, char *argv[])
 
   duracao = (double)(fim - inicio) / CLOCKS_PER_SEC;
 
-  saida = fopen("serial.dat", "a");
-  fprintf(saida, "%.5f\n", duracao);
-  fclose(saida);
+  // saida = fopen("serial.dat", "a");
+  // fprintf(saida, "%.5f\n", duracao);
+  // fclose(saida);
   printf("%.5f\n", duracao);
 
   return 0;

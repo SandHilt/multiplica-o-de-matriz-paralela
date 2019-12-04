@@ -14,10 +14,11 @@ def ler_arquivo(file):
 
 boxdata = []
 
-for prefixo in ['serial', 'serialsum', 'paralela1for', 'paralela2for']:
-    for N in ['1000']:
-        name = '_'.join([N, prefixo])
-        f = open('omp/matriz/saida_{:s}.dat'.format(name), 'r')
+for estilo in ['serial', 'mpi', 'omp']:
+    for projeto in ['matriz']:
+        f = open('{:s}/{:s}/saida.dat'.format(
+            estilo, projeto
+        ), 'r')
         data = ler_arquivo(f)
         boxdata.append(data)
 
