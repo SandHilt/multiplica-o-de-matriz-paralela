@@ -14,6 +14,7 @@
  */
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 typedef unsigned char cell_t;
 
 cell_t **allocate_board(int size)
@@ -108,6 +109,9 @@ void read_file(FILE *f, cell_t **board, int size)
 
 int main()
 {
+	clock_t inicio, fim;
+	double duracao;
+
 	int size, steps;
 	FILE *f;
 	f = stdin;
@@ -124,6 +128,7 @@ int main()
 	printf("----------\n");
 #endif
 
+	inicio = clock();
 	for (i = 0; i < steps; i++)
 	{
 		play(prev, next, size);
@@ -135,7 +140,10 @@ int main()
 		next = prev;
 		prev = tmp;
 	}
-	print(prev, size);
+	fim = clock();
+	duracao = (double)(fim - inicio) / CLOCKS_PER_SEC;
+	printf("%.5f", duracao);
+	// print(prev, size);
 	free_board(prev, size);
 	free_board(next, size);
 }
