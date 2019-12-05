@@ -14,7 +14,7 @@
  */
 #include <stdio.h>
 #include <stdlib.h>
-#include <mpi.h>
+#include <omp.h>
 typedef unsigned char cell_t;
 
 cell_t **allocate_board(int size)
@@ -54,38 +54,25 @@ int adjacent_to(cell_t **board, int size, int i, int j)
 
 void play(cell_t **board, cell_t **newboard, int size, int argc, char **argv)
 {
-	int numtasks, rank, tag;
-	int dest, source;
-
 	int i, j, a;
 
-	MPI_Init(&argc, &argv);
-
-	MPI_Comm_size( MPI_COMM_WORLD, &numtasks);
-	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-
-	if(rank == 0){
-
-	} else {
-
-	}
 
 	/* for each cell, apply the rules of Life */
-	// for (i = 0; i < size; i++)
-	// 	for (j = 0; j < size; j++)
-	// 	{
-	// 		a = adjacent_to(board, size, i, j);
-	// 		if (a == 2)
-	// 			newboard[i][j] = board[i][j];
-	// 		if (a == 3)
-	// 			newboard[i][j] = 1;
-	// 		if (a < 2)
-	// 			newboard[i][j] = 0;
-	// 		if (a > 3)
-	// 			newboard[i][j] = 0;
-	// 	}
+	for (i = 0; i < size; i++)
+		#pragma paralell for
+		for (j = 0; j < size; j++)
+		{
+			a = adjacent_to(board, size, i, j);
+			if (a == 2)
+				newboard[i][j] = board[i][j];
+			if (a == 3)
+				newboard[i][j] = 1;
+			if (a < 2)
+				newboard[i][j] = 0;
+			if (a > 3)
+				newboard[i][j] = 0;
+		}
 
-	MPI_Finalize();
 }
 
 /* print the life board */
@@ -144,7 +131,6 @@ int main(int argc, char **argv)
 	printf("----------\n");
 #endif
 
-	inicio = MPI_Wtime();
 	for (i = 0; i < steps; i++)
 	{
 		play(prev, next, size, argc, argv);
@@ -156,8 +142,6 @@ int main(int argc, char **argv)
 		next = prev;
 		prev = tmp;
 	}
-	fim = MPI_Wtime();
-	printf("%.5f", fim - inicio);
 	// print(prev, size);
 	free_board(prev, size);
 	free_board(next, size);

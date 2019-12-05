@@ -44,6 +44,9 @@ int adjacent_to(cell_t **board, int size, int i, int j)
 	int sl = (j > 0) ? j - 1 : j;
 	int el = (j + 1 < size) ? j + 1 : j;
 
+	/**
+	 * Pior caso 3 * 3 = 9
+	 * */
 	for (k = sk; k <= ek; k++)
 		for (l = sl; l <= el; l++)
 			count += board[k][l];
@@ -52,38 +55,72 @@ int adjacent_to(cell_t **board, int size, int i, int j)
 	return count;
 }
 
-void play(cell_t **board, cell_t **newboard, int size, int argc, char **argv)
+void play(cell_t **board, cell_t **newboard, int size)
 {
 	int numtasks, rank, tag;
 	int dest, source;
+	int *inmsg, *outmsg;
 
 	int i, j, a;
 
-	MPI_Init(&argc, &argv);
+	MPI_Status state;
+	MPI_Init(NULL, NULL);
 
-	MPI_Comm_size( MPI_COMM_WORLD, &numtasks);
+	MPI_Comm_size(MPI_COMM_WORLD, &numtasks);
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
-	if(rank == 0){
-
-	} else {
-
+	if (numtasks < 2)
+	{
+		MPI_Abort(MPI_COMM_WORLD, MPI_ERR_SIZE);
 	}
 
-	/* for each cell, apply the rules of Life */
-	// for (i = 0; i < size; i++)
-	// 	for (j = 0; j < size; j++)
-	// 	{
-	// 		a = adjacent_to(board, size, i, j);
-	// 		if (a == 2)
-	// 			newboard[i][j] = board[i][j];
-	// 		if (a == 3)
-	// 			newboard[i][j] = 1;
-	// 		if (a < 2)
-	// 			newboard[i][j] = 0;
-	// 		if (a > 3)
-	// 			newboard[i][j] = 0;
-	// 	}
+	if (rank == 0)
+	{
+		source = MPI_ANY_SOURCE;
+		tag = MPI_ANY_TAG;
+		inmsg = (int *)malloc(3 * sizeof(int));
+
+		/* for each cell, apply the rules of Life */
+		for (i = 0; i < size * (numtasks - 1); i++)
+		{
+			MPI_Recv(inmsg, 3, MPI_INT, source, tag, MPI_COMM_WORLD, &state);
+
+			a = inmsg[0];
+
+			if (a == 2)
+			{
+				newboard[i][j] = board[i][j];
+			}
+			else if (a == 3)
+			{
+				newboard[i][j] = 1;
+			}
+			else if (a < 2 || a > 3)
+			{
+				newboard[i][j] = 0;
+			}
+		}
+		free(inmsg);
+	}
+	else
+	{
+		dest = 0;
+		tag = rank;
+		outmsg = (int *)malloc(3 * sizeof(int));
+
+		for (i = 0; i < size; i++)
+		{
+			for (j = rank - 1; j < size; j += numtasks - 1)
+			{
+				printf("%d %d %d", rank, i, j);
+				outmsg[0] = adjacent_to(board, size, i, j);
+				outmsg[1] = i;
+				outmsg[2] = j;
+				MPI_Send(outmsg, 3, MPI_INT, dest, tag, MPI_COMM_WORLD);
+			}
+		}
+		free(outmsg);
+	}
 
 	MPI_Finalize();
 }
@@ -124,7 +161,7 @@ void read_file(FILE *f, cell_t **board, int size)
 	}
 }
 
-int main(int argc, char **argv)
+int main()
 {
 	double inicio, fim;
 
@@ -144,10 +181,10 @@ int main(int argc, char **argv)
 	printf("----------\n");
 #endif
 
-	inicio = MPI_Wtime();
+	// inicio = MPI_Wtime();
 	for (i = 0; i < steps; i++)
 	{
-		play(prev, next, size, argc, argv);
+		play(prev, next, size);
 #ifdef DEBUG
 		printf("%d ----------\n", i);
 		print(next, size);
@@ -156,7 +193,7 @@ int main(int argc, char **argv)
 		next = prev;
 		prev = tmp;
 	}
-	fim = MPI_Wtime();
+	// fim = MPI_Wtime();
 	printf("%.5f", fim - inicio);
 	// print(prev, size);
 	free_board(prev, size);
