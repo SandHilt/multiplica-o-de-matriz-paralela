@@ -1,6 +1,6 @@
 CC=gcc
 
-FLAGS=-fopenmp -O3
+FLAGS=-fopenmp
 
 all: matriz
 

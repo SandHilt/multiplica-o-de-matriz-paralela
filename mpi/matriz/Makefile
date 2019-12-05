@@ -1,6 +1,6 @@
 CC=mpicc
 
-FLAGS=-O3
+FLAGS=
 
 all: main
 

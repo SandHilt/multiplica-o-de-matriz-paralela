@@ -1,6 +1,6 @@
 CC=gcc
 
-FLAGS=-O3
+FLAGS=
 
 all: main
 

@@ -45,7 +45,7 @@ int main(int argc, char *argv[])
     {
       sum = 0;
 
-#pragma omp parallel for num_threads(T) reduction(+:sum) schedule(guided, 4)
+#pragma omp parallel for num_threads(T) reduction(+:sum)
       for (k = 0; k < SIZE; k++)
         sum += A[i][k] * B[k][j];
 
