@@ -1,6 +1,6 @@
 CC=cc
 
-FLAGS=-O3
+FLAGS=-O3 -fopenmp
 
 all: life
 
