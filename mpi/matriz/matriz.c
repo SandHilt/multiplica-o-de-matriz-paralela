@@ -28,7 +28,7 @@ void print_matrix(int m[SIZE][SIZE])
     printf("|");
   }
 }
-int main(int argc, char *argv[])
+int main(int argc, char **argv)
 {
   int numtasks, rank, dest, source, tag;
   int *inmsg, *outmsg;

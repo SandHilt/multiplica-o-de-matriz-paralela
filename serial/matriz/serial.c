@@ -29,7 +29,7 @@ void print_matrix(int m[SIZE][SIZE])
 }
 
 
-int main(int argc, char *argv[])
+int main(int argc, char **argv)
 {
   clock_t inicio = 0, fim = 0;
   double duracao = 0;

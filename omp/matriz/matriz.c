@@ -29,7 +29,7 @@ void print_matrix(int m[SIZE][SIZE])
   }
 }
 
-int main(int argc, char *argv[])
+int main(int argc, char **argv)
 {
   const int T = atoi(argv[1]);
 
