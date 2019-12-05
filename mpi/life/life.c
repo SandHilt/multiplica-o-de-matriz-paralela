@@ -61,22 +61,17 @@ void play(cell_t **board, cell_t **newboard, int size, int rank, int numtasks)
 
 	/* for each cell, apply the rules of Life */
 	for (i = 0; i < size; i++)
-		for (j = rank; j < size; j += numtasks)
+		for (j = rank; j < size; j+= numtasks)
 		{
 			a = adjacent_to(board, size, i, j);
-
 			if (a == 2)
-			{
 				newboard[i][j] = board[i][j];
-			}
-			else if (a == 3)
-			{
+			if (a == 3)
 				newboard[i][j] = 1;
-			}
-			else if (a < 2 || a > 3)
-			{
+			if (a < 2)
 				newboard[i][j] = 0;
-			}
+			if (a > 3)
+				newboard[i][j] = 0;
 		}
 }
 
@@ -167,8 +162,8 @@ int main(int argc, char **argv)
 			prev = tmp;
 		}
 		
-		MPI_Bcast(prev, size, MPI_UNSIGNED_CHAR, 0, MPI_COMM_WORLD);
-		MPI_Bcast(next, size, MPI_UNSIGNED_CHAR, 0, MPI_COMM_WORLD);
+		MPI_Bcast(&prev, 1, MPI_UNSIGNED_CHAR, 0, MPI_COMM_WORLD);
+		MPI_Bcast(&next, 1, MPI_UNSIGNED_CHAR, 0, MPI_COMM_WORLD);
 	}
 	if (rank == 0)
 	{
