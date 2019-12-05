@@ -1,5 +1,5 @@
-SUBDIRS := $(wildcard omp/matriz/.) $(wildcard mpi/matriz/.)\
-	$(wildcard serial/matriz/.)
+SUBDIRS := $(wildcard omp/**/.) $(wildcard mpi/**/.)\
+	$(wildcard serial/**/.)
 
 SIZE=1000
 export SIZE
