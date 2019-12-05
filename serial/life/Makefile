@@ -8,4 +8,4 @@ life: life.c
 	$(CC) $(FLAGS) life.c -o life.out
 
 clean:
-	rm *.out
+	rm -rf *.out *.dat

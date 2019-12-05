@@ -1,18 +1,23 @@
 #!/bin/bash
 echo "Script esta rodando...";
-for i in $(eval echo {1.."$1"})
+
+for p in 'matriz'
 do
-    printf '%s\n' --------------------;
-    echo "Teste $i"
-    echo "Rodando o serial";
-    ./serial/matriz/serial.out >> ./matriz_serial.dat;
-    
-    for i in 2 4
+    echo "Projeto $p"
+    for i in $(eval echo {1.."$1"})
     do
-        echo "Rodando o MPI com $i CPUS";
-        mpirun --use-hwthread-cpus -np $i ./mpi/matriz/matriz.out >> ./matriz_mpi_$i.dat;
-        echo "Rodando o OMP com $i CPUS";
-        ./omp/matriz/matriz.out $i >> ./matriz_omp_$i.dat
+        printf '%s\n' --------------------;
+        echo "Teste $i"
+        echo "Rodando o serial";
+        ./serial/$(eval echo $p)/serial.out >> ./$(eval echo $p)_serial.dat;
+        
+        for i in 2 4
+        do
+            echo "Rodando o MPI com $i CPUS";
+            mpirun --use-hwthread-cpus -np $i ./mpi/$(eval echo $p)/$(eval echo $p).out >> ./$(eval echo $p)_mpi_$i.dat;
+            echo "Rodando o OMP com $i CPUS";
+            ./omp/$(eval echo $p)/$(eval echo $p).out $i >> ./$(eval echo $p)_omp_$i.dat
+        done
     done
 done
 printf '%s\n' --------------------;

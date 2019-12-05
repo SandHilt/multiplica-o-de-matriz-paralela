@@ -22,11 +22,12 @@ size = " "
 if len(argv) == 2:
     size = argv[1]
 
-serial = 0
-speedup = []
-eficiencia = []
 
 for projeto in ['matriz']:
+    serial = 0
+    speedup = []
+    eficiencia = []
+
     for estilo in estilos:
         filename = '{:s}_{:s}.dat'.format(projeto, estilo)
 
@@ -51,25 +52,31 @@ for projeto in ['matriz']:
         print("-"*20)
 
 
-plt.subplot(1,2,1)
+    plt.suptitle("Projeto {:s}".format(projeto.capitalize()))
+    plt.subplot(1,2,1)
 
-plt.boxplot(boxdata, labels=estilos, vert=False)
-plt.grid(True)
-plt.xlabel("Tempo (s)")
-plt.title("Tempos de execucao {:s}".format(size))
-
-
-plt.subplot(2,2,2)
-plt.title("Speedup")
-plt.barh(parallel, speedup)
+    plt.boxplot(boxdata, labels=estilos, vert=False)
+    plt.grid(True, axis='x')
+    plt.xlabel("Tempo (s)")
+    plt.title("Tempos de execucao {:s}x{:s}".format(size, size))
 
 
-plt.subplot(2,2,4)
-plt.title("Eficiência")
-plt.bar(parallel, eficiencia)
+    plt.subplot(2,2,2)
+    plt.title("Speedup")
+    plt.xlim([0, 4])
+    plt.grid(True, axis='x')
+    plt.barh(parallel, speedup)
 
-plt.savefig('./boxplot.png')
-plt.show()
+
+    plt.subplot(2,2,4)
+    plt.title("Eficiência")
+    plt.ylim([0, 100])
+    plt.grid(True, axis='y')
+    plt.bar(parallel, eficiencia)
+
+    plt.savefig('./boxplot_{:s}.png'.format(projeto))
+    plt.tight_layout()
+    plt.show()
 
 # speedup = tempo_sequencial / mean(tempos_paralelos)
 # eficiencia = speedup / processadores * 100
