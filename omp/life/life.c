@@ -55,11 +55,11 @@ int adjacent_to(cell_t **board, int size, int i, int j)
 void play(cell_t **board, cell_t **newboard, int size, int argc, char **argv)
 {
 	int i, j, a;
-
+	const int T = atoi(argv[1]);
 
 	/* for each cell, apply the rules of Life */
 	for (i = 0; i < size; i++)
-		#pragma paralell for
+		#pragma parallel for num_threads(T)
 		for (j = 0; j < size; j++)
 		{
 			a = adjacent_to(board, size, i, j);
@@ -131,6 +131,7 @@ int main(int argc, char **argv)
 	printf("----------\n");
 #endif
 
+	inicio = omp_get_wtime();
 	for (i = 0; i < steps; i++)
 	{
 		play(prev, next, size, argc, argv);
@@ -142,6 +143,8 @@ int main(int argc, char **argv)
 		next = prev;
 		prev = tmp;
 	}
+	fim = omp_get_wtime();
+	printf("%.5f", fim - inicio);
 	// print(prev, size);
 	free_board(prev, size);
 	free_board(next, size);
