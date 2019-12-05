@@ -55,7 +55,7 @@ int main(int argc, char *argv[])
   fim = omp_get_wtime();
 #ifdef DEBUG
   print_matrix(C);
-#endif DEBUG
+#endif
 
   printf("%.5f\n", fim - inicio);
 
