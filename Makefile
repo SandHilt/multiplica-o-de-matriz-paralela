@@ -6,12 +6,6 @@ export SIZE
 
 NUMBER_TESTS=30
 
-america: clear
-great: all
-
-again:
-	./run.sh $(NUMBER_TESTS) $(SIZE)
-
 all: $(SUBDIRS)
 
 $(SUBDIRS):
@@ -19,5 +13,12 @@ $(SUBDIRS):
 
 .PHONY: all $(SUBDIRS)
 
-clear:
+america: clean
+great: all
+
+again:
+	./run.sh $(NUMBER_TESTS) $(SIZE)
+
+
+clean:
 	rm -rf *.dat *.png

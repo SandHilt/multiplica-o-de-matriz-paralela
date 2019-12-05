@@ -71,7 +71,7 @@ int main(int argc, char *argv[])
 
     start = MPI_Wtime();
 
-    for (int k = 0, r = SIZE * SIZE * (numtasks - 1); k < r; k++)
+    for (int k = 0, r = SIZE * SIZE * SIZE; k < r; k++)
     {
       MPI_Recv(inmsg, 3, MPI_INT, source, tag, MPI_COMM_WORLD, &State);
 
@@ -80,8 +80,8 @@ int main(int argc, char *argv[])
       int j = inmsg[2];
 
 #ifdef DEBUG
-      fprintf(saida, "\nrank: %d C[%d,%d] = %d + %d\n",
-              State.MPI_SOURCE, i, j, C[i][j], value);
+      printf("\nrank: %d C[%d,%d] = %d + %d\n",
+             State.MPI_SOURCE, i, j, C[i][j], value);
 #endif
 
       C[i][j] += value;
@@ -103,10 +103,9 @@ int main(int argc, char *argv[])
 
         for (int k = rank - 1; k < SIZE; k += numtasks - 1)
         {
-          outmsg[0] += A[i][k] * B[k][j];
+          outmsg[0] = A[i][k] * B[k][j];
+          MPI_Send(outmsg, 3, MPI_INT, dest, tag, MPI_COMM_WORLD);
         }
-
-        MPI_Send(outmsg, 3, MPI_INT, dest, tag, MPI_COMM_WORLD);
 
         free(outmsg);
       }
@@ -117,10 +116,12 @@ int main(int argc, char *argv[])
   {
     end = MPI_Wtime();
     printf("%.5f\n", end - start);
+#ifdef DEBUG
+  print_matrix(C);
+#endif
   }
 
   MPI_Finalize();
-  // print_matrix(C);
 
   return 0;
 }

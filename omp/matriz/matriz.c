@@ -45,7 +45,7 @@ int main(int argc, char *argv[])
     {
       sum = 0;
 
-      #pragma omp parallel for num_threads(T) reduction(+:sum)
+#pragma omp parallel for num_threads(T) reduction(+:sum) schedule(guided, 4)
       for (k = 0; k < SIZE; k++)
         sum += A[i][k] * B[k][j];
 
@@ -53,7 +53,9 @@ int main(int argc, char *argv[])
     }
 
   fim = omp_get_wtime();
-  // print_matrix(C);
+#ifdef DEBUG
+  print_matrix(C);
+#endif DEBUG
 
   printf("%.5f\n", fim - inicio);
 
