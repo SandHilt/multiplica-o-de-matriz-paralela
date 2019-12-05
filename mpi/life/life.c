@@ -55,24 +55,16 @@ int adjacent_to(cell_t **board, int size, int i, int j)
 	return count;
 }
 
-void play(cell_t **board, cell_t **newboard, int size)
+void play(cell_t **board, cell_t **newboard, int size, int rank, int numtasks)
 {
-	int numtasks, rank, tag;
-	int dest, source;
 	int *inmsg, *outmsg;
+	int dest, source, tag;
 
 	int i, j, a;
 
+	FILE *s = fopen("./debug.dat", "a");
+
 	MPI_Status state;
-	MPI_Init(NULL, NULL);
-
-	MPI_Comm_size(MPI_COMM_WORLD, &numtasks);
-	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-
-	if (numtasks < 2)
-	{
-		MPI_Abort(MPI_COMM_WORLD, MPI_ERR_SIZE);
-	}
 
 	if (rank == 0)
 	{
@@ -86,6 +78,8 @@ void play(cell_t **board, cell_t **newboard, int size)
 			MPI_Recv(inmsg, 3, MPI_INT, source, tag, MPI_COMM_WORLD, &state);
 
 			a = inmsg[0];
+			i = inmsg[1];
+			j = inmsg[2];
 
 			if (a == 2)
 			{
@@ -99,7 +93,10 @@ void play(cell_t **board, cell_t **newboard, int size)
 			{
 				newboard[i][j] = 0;
 			}
+
+			fprintf(s, "a=%d, i=%d, j=%d\n", a, i, j);
 		}
+		fclose(s);
 		free(inmsg);
 	}
 	else
@@ -121,8 +118,6 @@ void play(cell_t **board, cell_t **newboard, int size)
 		}
 		free(outmsg);
 	}
-
-	MPI_Finalize();
 }
 
 /* print the life board */
@@ -161,8 +156,10 @@ void read_file(FILE *f, cell_t **board, int size)
 	}
 }
 
-int main()
+int main(int argc, char **argv)
 {
+	int numtasks, rank;
+
 	double inicio, fim;
 
 	int size, steps;
@@ -180,21 +177,41 @@ int main()
 	print(prev, size);
 	printf("----------\n");
 #endif
+	MPI_Init(&argc, &argv);
 
-	// inicio = MPI_Wtime();
+	MPI_Comm_size(MPI_COMM_WORLD, &size);
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+
+	if (numtasks < 2)
+	{
+		MPI_Abort(MPI_COMM_WORLD, MPI_ERR_SIZE);
+	}
+
+	if (rank == 0)
+	{
+		inicio = MPI_Wtime();
+	}
+	
 	for (i = 0; i < steps; i++)
 	{
-		play(prev, next, size);
+		play(prev, next, size, rank, numtasks);
 #ifdef DEBUG
 		printf("%d ----------\n", i);
 		print(next, size);
 #endif
-		tmp = next;
-		next = prev;
-		prev = tmp;
+		if (rank == 0)
+		{
+			tmp = next;
+			next = prev;
+			prev = tmp;
+		}
 	}
-	// fim = MPI_Wtime();
-	printf("%.5f", fim - inicio);
+	if (rank == 0)
+	{
+		fim = MPI_Wtime();
+		printf("%.5f", fim - inicio);
+	}
+	MPI_Finalize();
 	// print(prev, size);
 	free_board(prev, size);
 	free_board(next, size);
