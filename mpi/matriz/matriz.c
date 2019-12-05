@@ -67,7 +67,7 @@ int main(int argc, char *argv[])
   {
     source = MPI_ANY_SOURCE;
     tag = MPI_ANY_TAG;
-    inmsg = (int *)calloc(3, sizeof(int));
+    inmsg = (int *)malloc(3*sizeof(int));
 
     start = MPI_Wtime();
 
@@ -86,18 +86,19 @@ int main(int argc, char *argv[])
 
       C[i][j] += value;
     }
+    free(inmsg);
   }
   else
   {
     dest = 0;
     tag = rank;
+    outmsg = (int *)malloc(3*sizeof(int));
 
     for (int i = 0; i < SIZE; i++)
     {
       for (int j = 0; j < SIZE; j++)
       {
-        outmsg = (int *)calloc(3, sizeof(int));
-
+        outmsg[0] = 0;
         outmsg[1] = i;
         outmsg[2] = j;
 
@@ -106,10 +107,9 @@ int main(int argc, char *argv[])
           outmsg[0] += A[i][k] * B[k][j];
         }
         MPI_Send(outmsg, 3, MPI_INT, dest, tag, MPI_COMM_WORLD);
-
-        free(outmsg);
       }
     }
+    free(outmsg);
   }
 
   if (rank == 0)
