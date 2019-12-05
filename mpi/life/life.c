@@ -14,7 +14,6 @@
  */
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdbool.h>
 #include <mpi.h>
 typedef unsigned char cell_t;
 
@@ -58,27 +57,13 @@ int adjacent_to(cell_t **board, int size, int i, int j)
 
 void play(cell_t **board, cell_t **newboard, int size, int rank, int numtasks)
 {
-	int *inmsg, *outmsg;
-	int dest, source, tag = 2;
-	MPI_Status state;
+	int i, j, a;
 
-	int i, j, k, a;
-
-	if (rank == 0)
-	{
-		FILE *s = fopen("./debug.dat", "a");
-
-		source = MPI_ANY_SOURCE;
-		inmsg = (int *)malloc(3 * sizeof(int));
-
-		/* for each cell, apply the rules of Life */
-		for (k = 0; k < size * size * (numtasks - 1); k++)
+	/* for each cell, apply the rules of Life */
+	for (i = 0; i < size; i++)
+		for (j = rank; j < size; j += numtasks)
 		{
-			MPI_Recv(inmsg, 3, MPI_INT, source, tag, MPI_COMM_WORLD, &state);
-
-			a = inmsg[0];
-			i = inmsg[1];
-			j = inmsg[2];
+			a = adjacent_to(board, size, i, j);
 
 			if (a == 2)
 			{
@@ -92,29 +77,7 @@ void play(cell_t **board, cell_t **newboard, int size, int rank, int numtasks)
 			{
 				newboard[i][j] = 0;
 			}
-
-			fprintf(s, "rank=%d, a=%d, i=%d, j=%d\n", state.MPI_SOURCE, a, i, j);
 		}
-		fclose(s);
-		free(inmsg);
-	}
-	else
-	{
-		dest = 0;
-		outmsg = (int *)malloc(3 * sizeof(int));
-
-		for (i = 0; i < size; i++)
-		{
-			for (j = rank - 1; j < size; j += numtasks - 1)
-			{
-				outmsg[0] = adjacent_to(board, size, i, j);
-				outmsg[1] = i;
-				outmsg[2] = j;
-				MPI_Send(outmsg, 3, MPI_INT, dest, tag, MPI_COMM_WORLD);
-			}
-		}
-		free(outmsg);
-	}
 }
 
 /* print the life board */
@@ -156,9 +119,7 @@ void read_file(FILE *f, cell_t **board, int size)
 int main(int argc, char **argv)
 {
 	double inicio, fim;
-	int source, dest, numtasks, rank, tag = 1;
-	bool insmsg, outmsg;
-	MPI_Status state;
+	int numtasks, rank;
 
 	int size, steps;
 	FILE *f;
@@ -177,7 +138,7 @@ int main(int argc, char **argv)
 #endif
 	MPI_Init(&argc, &argv);
 
-	MPI_Comm_size(MPI_COMM_WORLD, &size);
+	MPI_Comm_size(MPI_COMM_WORLD, &numtasks);
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
 	if (numtasks < 2)
@@ -188,29 +149,26 @@ int main(int argc, char **argv)
 	if (rank == 0)
 	{
 		inicio = MPI_Wtime();
-		outmsg = true;
+	}
 
-		for (i = 0; i < steps; i++)
-		{
-			play(prev, next, size, rank, numtasks);
+	for (i = 0; i < steps; i++)
+	{
+
+		play(prev, next, size, rank, numtasks);
 #ifdef DEBUG
-			printf("%d ----------\n", i);
-			print(next, size);
+		printf("%d ----------\n", i);
+		print(next, size);
 #endif
+
+		if (rank == 0)
+		{
 			tmp = next;
 			next = prev;
 			prev = tmp;
 		}
-	}
-	else
-	{
-		source = 0;
-
-		for (i = 0; i < steps; i++)
-		{
-			play(prev, next, size, rank, numtasks);
-			MPI_Recv(&insmsg, 1, MPI_C_BOOL, source, tag, MPI_COMM_WORLD, &state);
-		}
+		
+		MPI_Bcast(prev, size, MPI_UNSIGNED_CHAR, 0, MPI_COMM_WORLD);
+		MPI_Bcast(next, size, MPI_UNSIGNED_CHAR, 0, MPI_COMM_WORLD);
 	}
 	if (rank == 0)
 	{
