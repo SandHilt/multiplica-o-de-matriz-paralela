@@ -61,7 +61,7 @@ void play(cell_t **board, cell_t **newboard, int size, int rank, int numtasks)
 
 	/* for each cell, apply the rules of Life */
 	for (i = 0; i < size; i++)
-		for (j = rank; j < size; j+= numtasks)
+		for (j = rank; j < size; j += numtasks)
 		{
 			a = adjacent_to(board, size, i, j);
 			if (a == 2)
@@ -116,16 +116,10 @@ int main(int argc, char **argv)
 	double inicio, fim;
 	int numtasks, rank;
 
-	int size, steps;
+	int i, j, size, steps;
 	FILE *f;
-	f = stdin;
-	fscanf(f, "%d %d", &size, &steps);
-	cell_t **prev = allocate_board(size);
-	read_file(f, prev, size);
-	fclose(f);
-	cell_t **next = allocate_board(size);
-	cell_t **tmp;
-	int i, j;
+	cell_t **prev, **next, **tmp;
+
 #ifdef DEBUG
 	printf("Initial \n");
 	print(prev, size);
@@ -143,8 +137,18 @@ int main(int argc, char **argv)
 
 	if (rank == 0)
 	{
+		f = stdin;
+		fscanf(f, "%d %d", &size, &steps);
+		prev = allocate_board(size);
+		read_file(f, prev, size);
+		fclose(f);
+		next = allocate_board(size);
+
 		inicio = MPI_Wtime();
 	}
+
+	MPI_Bcast(prev, 1, MPI_UNSIGNED_CHAR, 0, MPI_COMM_WORLD);
+	MPI_Bcast(next, 1, MPI_UNSIGNED_CHAR, 0, MPI_COMM_WORLD);
 
 	for (i = 0; i < steps; i++)
 	{
@@ -161,9 +165,10 @@ int main(int argc, char **argv)
 			next = prev;
 			prev = tmp;
 		}
-		
+
 		MPI_Bcast(&prev, 1, MPI_UNSIGNED_CHAR, 0, MPI_COMM_WORLD);
 		MPI_Bcast(&next, 1, MPI_UNSIGNED_CHAR, 0, MPI_COMM_WORLD);
+		
 	}
 	if (rank == 0)
 	{
