@@ -111,13 +111,20 @@ void read_file(FILE *f, cell_t **board, int size)
 	}
 }
 
+void syncro(cell_t **A, int size)
+{
+	for (int i = 0; i < size; i++)
+	{
+		MPI_Bcast(A[i], 1, MPI_UNSIGNED_CHAR, 0, MPI_COMM_WORLD);
+	}
+}
+
 int main(int argc, char **argv)
 {
 	double inicio, fim;
 	int numtasks, rank;
 
-	int i, j, size, steps;
-	FILE *f;
+	int i, size, steps;
 	cell_t **prev, **next, **tmp;
 
 #ifdef DEBUG
@@ -137,7 +144,7 @@ int main(int argc, char **argv)
 
 	if (rank == 0)
 	{
-		f = stdin;
+		FILE *f = stdin;
 		fscanf(f, "%d %d", &size, &steps);
 		prev = allocate_board(size);
 		read_file(f, prev, size);
@@ -147,13 +154,16 @@ int main(int argc, char **argv)
 		inicio = MPI_Wtime();
 	}
 
-	MPI_Bcast(prev, 1, MPI_UNSIGNED_CHAR, 0, MPI_COMM_WORLD);
-	MPI_Bcast(next, 1, MPI_UNSIGNED_CHAR, 0, MPI_COMM_WORLD);
+	syncro(prev, size);
+	syncro(next, size);
 
 	for (i = 0; i < steps; i++)
 	{
 
 		play(prev, next, size, rank, numtasks);
+		/*
+		 * Rank 0 precisa sincronizar as matrizes
+		 * */
 #ifdef DEBUG
 		printf("%d ----------\n", i);
 		print(next, size);
@@ -165,10 +175,6 @@ int main(int argc, char **argv)
 			next = prev;
 			prev = tmp;
 		}
-
-		MPI_Bcast(&prev, 1, MPI_UNSIGNED_CHAR, 0, MPI_COMM_WORLD);
-		MPI_Bcast(&next, 1, MPI_UNSIGNED_CHAR, 0, MPI_COMM_WORLD);
-		
 	}
 	if (rank == 0)
 	{
