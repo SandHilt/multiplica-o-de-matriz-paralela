@@ -17,6 +17,9 @@
 #include <mpi.h>
 typedef unsigned char cell_t;
 
+#define TAG_READ 1
+#define TAG_WRITE 2
+
 cell_t **allocate_board(int size)
 {
 	cell_t **board = (cell_t **)malloc(sizeof(cell_t *) * size);
@@ -57,12 +60,17 @@ int adjacent_to(cell_t **board, int size, int i, int j)
 
 void play(cell_t **board, cell_t **newboard, int size, int rank, int numtasks)
 {
+	int *inmsg = (int *)malloc(3 * sizeof(int));
+	int dest = 0;
+
 	int i, j, a;
 
 	/* for each cell, apply the rules of Life */
 	for (i = 0; i < size; i++)
 		for (j = rank; j < size; j += numtasks)
 		{
+			MPI_Send(inmsg, 3, MPI_INT, dest, TAG_READ, MPI_COMM_WORLD);
+
 			a = adjacent_to(board, size, i, j);
 			if (a == 2)
 				newboard[i][j] = board[i][j];
@@ -123,6 +131,7 @@ int main(int argc, char **argv)
 {
 	double inicio, fim;
 	int numtasks, rank;
+	int *inmsg, *outmsg;
 
 	int i, size, steps;
 	cell_t **prev, **next, **tmp;
@@ -150,17 +159,19 @@ int main(int argc, char **argv)
 		read_file(f, prev, size);
 		fclose(f);
 		next = allocate_board(size);
-
 		inicio = MPI_Wtime();
 	}
 
-	syncro(prev, size);
-	syncro(next, size);
-
 	for (i = 0; i < steps; i++)
 	{
-
-		play(prev, next, size, rank, numtasks);
+		if (rank == 0)
+		{
+			// MPI_Recv();
+		}
+		else
+		{
+			play(prev, next, size, rank, numtasks);
+		}
 		/*
 		 * Rank 0 precisa sincronizar as matrizes
 		 * */
@@ -168,7 +179,6 @@ int main(int argc, char **argv)
 		printf("%d ----------\n", i);
 		print(next, size);
 #endif
-
 		if (rank == 0)
 		{
 			tmp = next;

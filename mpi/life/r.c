@@ -23,16 +23,17 @@ void main(int argc, char **argv)
     if (rank == 0)
     {
         MPI_Status status;
-        inmsg = (int *)malloc(SIZE * sizeof(int));
+        inmsg = (int *)malloc(3 * sizeof(int));
         buffer = (int **)malloc(SIZE * sizeof(int));
 
         for (i = 0; i < SIZE; i++)
             buffer[i] = (int *)malloc(SIZE * sizeof(int));
 
-        for (i = 0; i < SIZE * (numtasks - 1); i++)
+        for (i = 0; i < SIZE * SIZE; i++)
         {
             MPI_Recv(inmsg, 3, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
 
+            printf("rank %d B(%d, %d)=%d\n", status.MPI_SOURCE, inmsg[1], inmsg[2], inmsg[0]);
             buffer[inmsg[1]][inmsg[2]] = inmsg[0];
         }
         free(inmsg);
