@@ -1,68 +1,37 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <mpi.h>
+#include <time.h>
 
-#define SIZE 3
+#define SIZE 10
 
-void main(int argc, char **argv)
+int main(int argc, char *argv[])
 {
-    int source, dest, tag;
-    int *inmsg, *outmsg;
-
-    int i, j, rank, numtasks;
-    int **buffer;
+    int rank, size, i;
+    double *param, *sub_param;
+    srand(time(NULL));
 
     MPI_Init(&argc, &argv);
-
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-    MPI_Comm_size(MPI_COMM_WORLD, &numtasks);
-
-    if (numtasks < 2)
-        MPI_Abort(MPI_COMM_WORLD, MPI_ERR_UNKNOWN);
-
+    MPI_Comm_size(MPI_COMM_WORLD, &size);
+    param = (double *)malloc(size * SIZE * sizeof(double));
     if (rank == 0)
     {
-        MPI_Status status;
-        inmsg = (int *)malloc(3 * sizeof(int));
-        buffer = (int **)malloc(SIZE * sizeof(int));
-
-        for (i = 0; i < SIZE; i++)
-            buffer[i] = (int *)malloc(SIZE * sizeof(int));
-
-        for (i = 0; i < SIZE * SIZE; i++)
+        for (i = 0; i < size * SIZE; ++i)
         {
-            MPI_Recv(inmsg, 3, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
-
-            printf("rank %d B(%d, %d)=%d\n", status.MPI_SOURCE, inmsg[1], inmsg[2], inmsg[0]);
-            buffer[inmsg[1]][inmsg[2]] = inmsg[0];
+            param[i] = rand() % 2;
         }
-        free(inmsg);
     }
     else
     {
-        tag = rank;
-        dest = 0;
-        outmsg = (int *)malloc(3 * sizeof(3));
-
-        for (i = 0; i < SIZE; i++)
-            for (j = rank - 1; j < SIZE; j += numtasks - 1)
-            {
-            //    buffer[i][j] = i + j;
-                outmsg[0] = i + j;
-                outmsg[1] = i;
-                outmsg[2] = j;
-                MPI_Send(outmsg, 3, MPI_INT, dest, tag, MPI_COMM_WORLD);
-            }
-
-        free(outmsg);
+        sub_param = (double *)calloc(SIZE, sizeof(double));
     }
 
-    if (rank == 0)
-    {
-        for (i = 0; i < SIZE; i++)
-            for (j = 0; j < SIZE; j++)
-                printf("B[%d,%d]=%d\n", i, j, buffer[i][j]);
-    }
-
+    MPI_Scatter(param, SIZE, MPI_DOUBLE, sub_param, SIZE, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+    printf("P:%d sub_param is: ", rank);
+    for (i = 0; i < SIZE; i++)
+        printf("%c ", sub_param[i] ? 'x' : '0');
+    printf("\n");
     MPI_Finalize();
+    return 0;
 }

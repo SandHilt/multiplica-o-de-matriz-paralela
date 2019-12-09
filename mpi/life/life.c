@@ -119,19 +119,11 @@ void read_file(FILE *f, cell_t **board, int size)
 	}
 }
 
-void syncro(cell_t **A, int size)
-{
-	for (int i = 0; i < size; i++)
-	{
-		MPI_Bcast(A[i], 1, MPI_UNSIGNED_CHAR, 0, MPI_COMM_WORLD);
-	}
-}
-
 int main(int argc, char **argv)
 {
 	double inicio, fim;
 	int numtasks, rank;
-	int *inmsg, *outmsg;
+	cell_t *inmsg, *outmsg;
 
 	int i, size, steps;
 	cell_t **prev, **next, **tmp;
@@ -164,17 +156,13 @@ int main(int argc, char **argv)
 
 	for (i = 0; i < steps; i++)
 	{
-		if (rank == 0)
-		{
-			// MPI_Recv();
-		}
-		else
-		{
-			play(prev, next, size, rank, numtasks);
-		}
+		MPI_Scatter(prev, numtasks - 1, MPI_UNSIGNED_CHAR, tmp, numtasks - 1, MPI_UNSIGNED_CHAR, 0, MPI_COMM_WORLD);
+		play(prev, next, size, rank, numtasks);
+		
 		/*
 		 * Rank 0 precisa sincronizar as matrizes
 		 * */
+
 #ifdef DEBUG
 		printf("%d ----------\n", i);
 		print(next, size);
