@@ -7,19 +7,23 @@
 
 int main(int argc, char *argv[])
 {
-    int rank, size, i;
-    int *param, *sub_param;
+    int rank, size, i, j;
+    int param[SIZE][SIZE], *sub_param;
     srand(time(NULL));
 
     MPI_Init(&argc, &argv);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &size);
-    param = (int *)malloc(size * SIZE * sizeof(int));
     if (rank == 0)
     {
-        for (i = 0; i < size * SIZE; ++i)
+        for (i = 0; i < SIZE; i++)
         {
-            param[i] = i;
+            for (j = 0; j < SIZE; j++)
+            {
+                param[i][j] = 10 * i + j;
+                printf("B[%d,%d]=%d\n", i, j, param[i][j]);
+            }
+            printf("\n");
         }
     }
     else
