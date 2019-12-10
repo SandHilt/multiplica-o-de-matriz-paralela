@@ -20,13 +20,18 @@ typedef unsigned char cell_t;
 #define TAG_READ 1
 #define TAG_WRITE 2
 
+cell_t **allocate_board_partial(int width, int height)
+{
+	cell_t **board = (cell_t **)malloc(sizeof(cell_t *) * width);
+	int i;
+	for (i = 0; i < width; i++)
+		board[i] = (cell_t *)malloc(sizeof(cell_t) * height);
+	return board;
+}
+
 cell_t **allocate_board(int size)
 {
-	cell_t **board = (cell_t **)malloc(sizeof(cell_t *) * size);
-	int i;
-	for (i = 0; i < size; i++)
-		board[i] = (cell_t *)malloc(sizeof(cell_t) * size);
-	return board;
+	return allocate_board_partial(size, size);
 }
 
 void free_board(cell_t **board, int size)
@@ -89,19 +94,24 @@ void play(cell_t **board, cell_t **newboard, int size, int rank, int numtasks)
 		}
 }
 
-/* print the life board */
-void print(cell_t **board, int size)
+void print_partial(cell_t **board, int width, int height)
 {
 	int i, j;
 	/* for each row */
-	for (j = 0; j < size; j++)
+	for (j = 0; j < height; j++)
 	{
 		/* print each column position... */
-		for (i = 0; i < size; i++)
+		for (i = 0; i < width; i++)
 			printf("%c", board[i][j] ? 'x' : ' ');
 		/* followed by a carriage return */
 		printf("\n");
 	}
+}
+
+/* print the life board */
+void print(cell_t **board, int size)
+{
+	print_partial(board, size, size);
 }
 
 /* read a file into the life board */
@@ -130,7 +140,7 @@ int main(int argc, char **argv)
 	double inicio, fim;
 	int numtasks, rank, root = 0;
 
-	int part, rest, offset = 0;
+	int part, rest, offset = 0, height;
 	int *sendcount, *displs;
 
 	int i, j, size, steps;
@@ -162,25 +172,35 @@ int main(int argc, char **argv)
 
 	MPI_Bcast(&size, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
-	if (rank == root)
-	{
-		next = allocate_board(size);
+	// if (rank == root)
+	// {
+	// 	next = allocate_board(size);
 
-		for (i = 0; i < size; i++)
-		{
-			for (j = 0; j < size; j++)
-			{
-				if (prev[i][j])
-					printf("[%d, %d] ", i, j);
-			}
-			printf("\n");
-		}
+	// 	for (i = 0; i < size; i++)
+	// 	{
+	// 		for (j = 0; j < size; j++)
+	// 		{
+	// 			if (prev[i][j])
+	// 				printf("[%d, %d] ", i, j);
+	// 		}
+	// 		printf("\n");
+	// 	}
 
-		inicio = MPI_Wtime();
-	}
+	// 	inicio = MPI_Wtime();
+	// }
 
 	part = size / numtasks;
 	rest = size % numtasks;
+	if (rest != 0 && rest <= rank)
+	{
+		height = part + 1;
+	}
+	else
+	{
+		height = part;
+	}
+
+	printf("rank %d h = %d\n", rank, height);
 
 	sendcount = (int *)calloc(numtasks, sizeof(int));
 	displs = (int *)calloc(numtasks, sizeof(int));
@@ -197,23 +217,28 @@ int main(int argc, char **argv)
 		offset += sendcount[i];
 	}
 
-	tmp = allocate_board(size);
+	tmp = allocate_board_partial(size, height);
 
 	for (i = 0; i < size; i++)
 		MPI_Scatterv(prev[i], sendcount, displs, MPI_UNSIGNED_CHAR, tmp[i], sendcount[rank], MPI_UNSIGNED_CHAR, root, MPI_COMM_WORLD);
 
-	for (i = 0; i < size; i++)
-	{
-		offset = 0;
-		if (size % numtasks < rank)
-			offset++;
-		for (j = 0; j < part + offset; j++)
-			if (tmp[i][j])
-				printf("R(%d)[%2d,%2d]\n", rank, i, j);
-				// printf("R(%d)[%2d,%2d]\n", rank, i, j + rank * part);
-	}
+	if (rank == 1)
+		print_partial(tmp, size, height);
 
-	for (i = 0; i < steps; i++)
+	// for (i = 0; i < size; i++)
+	// {
+	// 	offset = size % numtasks <= rank ? 1 : 0;
+
+	// 	for (j = 0; j < part + offset; j++)
+	// 		if (tmp[i][j])
+	// 			printf("R(%d)[%2d,%2d]\n", rank, i, j);
+	// 	// printf("R(%d)[%2d,%2d]\n", rank, i, j + rank * part);
+	// }
+
+	if (rank == root)
+		inicio = MPI_Wtime();
+
+	for (i = 0; i < 0; i++)
 	{
 		// MPI_Status status;
 		// inmsg = (int *)malloc(3 * sizeof(int));
