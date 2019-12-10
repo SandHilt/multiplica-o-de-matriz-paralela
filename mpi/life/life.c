@@ -48,6 +48,12 @@ int adjacent_to(cell_t **board, int size, int i, int j)
 	int el = (j + 1 < size) ? j + 1 : j;
 
 	/**
+	 * TODO Preciso de um recorte da tabela
+	 * sk ek
+	 * sl el
+	 * */
+
+	/**
 	 * Pior caso 3 * 3 = 9
 	 * */
 	for (k = sk; k <= ek; k++)
@@ -122,10 +128,12 @@ void read_file(FILE *f, cell_t **board, int size)
 int main(int argc, char **argv)
 {
 	double inicio, fim;
-	int numtasks, rank;
-	cell_t *inmsg, *outmsg;
+	int numtasks, rank, root = 0;
 
-	int i, size, steps;
+	int part, offset = 0;
+	int *sendcount, *displs;
+
+	int i, j, size, steps;
 	cell_t **prev, **next, **tmp;
 
 #ifdef DEBUG
@@ -143,22 +151,97 @@ int main(int argc, char **argv)
 		MPI_Abort(MPI_COMM_WORLD, MPI_ERR_SIZE);
 	}
 
-	if (rank == 0)
+	if (rank == root)
 	{
 		FILE *f = stdin;
 		fscanf(f, "%d %d", &size, &steps);
 		prev = allocate_board(size);
 		read_file(f, prev, size);
 		fclose(f);
+	}
+
+	MPI_Bcast(&size, 1, MPI_INT, 0, MPI_COMM_WORLD);
+
+	if (rank == root)
+	{
 		next = allocate_board(size);
+
+		printf("\n");
+		for (i = 0; i < size; i++)
+		{
+			for (j = 0; j < size; j++)
+			{
+				if (prev[i][j])
+					printf("[%d, %d] ", i, j);
+			}
+			printf("\n");
+		}
+
 		inicio = MPI_Wtime();
 	}
 
-	for (i = 0; i < steps; i++)
+	part = size / numtasks;
+
+	sendcount = (int *)calloc(numtasks, sizeof(int));
+	displs = (int *)calloc(numtasks, sizeof(int));
+
+	if (rank == root)
 	{
-		MPI_Scatter(prev, numtasks - 1, MPI_UNSIGNED_CHAR, tmp, numtasks - 1, MPI_UNSIGNED_CHAR, 0, MPI_COMM_WORLD);
-		play(prev, next, size, rank, numtasks);
-		
+		int rest = size % numtasks;
+		for (i = 0; i < numtasks; i++)
+		{
+			printf(" %d", i);
+			sendcount[i] = part;
+			if (rest > 0)
+			{
+				sendcount[i]++;
+				rest--;
+			}
+			displs[i] = offset;
+			offset += sendcount[i];
+
+			printf("sendcounts[%d] = %d\tdispls[%d] = %d\n", i, sendcount[i], i, displs[i]);
+		}
+		printf("Foi embora");
+	}
+
+	tmp = allocate_board(size);
+
+	MPI_Bcast(sendcount, numtasks, MPI_INT, root, MPI_COMM_WORLD);
+	MPI_Bcast(displs, numtasks, MPI_INT, root, MPI_COMM_WORLD);
+
+	for (i = 0; i < size; i++)
+	{
+		MPI_Scatterv(prev[i], sendcount, displs, MPI_UNSIGNED_CHAR, tmp, sendcount[rank], MPI_UNSIGNED_CHAR, root, MPI_COMM_WORLD);
+		// MPI_Scatter(prev[i], part, MPI_UNSIGNED_CHAR, tmp[i], part, MPI_UNSIGNED_CHAR, root, MPI_COMM_WORLD);
+	}
+
+	for (i = 0; i < size; i++)
+	{
+		for (j = 0; j < part; j++)
+		{
+			if (tmp[i][j])
+				printf("rank %d [%d,%d] ", rank, i, j + rank * part);
+		}
+		printf("\n");
+	}
+
+	for (i = 0; i < 1; i++)
+	{
+		if (rank == root)
+		{
+			// MPI_Status status;
+			// inmsg = (int *)malloc(3 * sizeof(int));
+			// MPI_Recv(inmsg, 3, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+		}
+		else
+		{
+			// play(prev, next, size, rank, numtasks);
+		}
+
+		// for (i = 0; i < size; i++)
+		// 	MPI_Gather(next[i], size, MPI_UNSIGNED_CHAR, tmp[i], size, MPI_UNSIGNED_CHAR, root, MPI_COMM_WORLD);
+
 		/*
 		 * Rank 0 precisa sincronizar as matrizes
 		 * */
@@ -167,20 +250,20 @@ int main(int argc, char **argv)
 		printf("%d ----------\n", i);
 		print(next, size);
 #endif
-		if (rank == 0)
-		{
-			tmp = next;
-			next = prev;
-			prev = tmp;
-		}
+		// if (rank == root)
+		// {
+		// 	tmp = next;
+		// 	next = prev;
+		// 	prev = tmp;
+		// }
 	}
-	if (rank == 0)
+	if (rank == root)
 	{
 		fim = MPI_Wtime();
 		printf("%.5f", fim - inicio);
 	}
 	MPI_Finalize();
 	// print(prev, size);
-	free_board(prev, size);
-	free_board(next, size);
+	// free_board(prev, size);
+	// free_board(next, size);
 }
