@@ -41,6 +41,8 @@ void free_board(cell_t **board, int size)
 int adjacent_to(cell_t **board, int size, int i, int j)
 {
 	int k, l, count = 0;
+	int **inmsg;
+	MPI_Status status;
 
 	int sk = (i > 0) ? i - 1 : i;
 	int ek = (i + 1 < size) ? i + 1 : i;
@@ -52,33 +54,35 @@ int adjacent_to(cell_t **board, int size, int i, int j)
 	 * sk ek
 	 * sl el
 	 * */
+	inmsg = allocate_board(3);
+	
+	MPI_Recv(inmsg, 3, MPI_UNSIGNED_CHAR, 0, TAG_READ, MPI_COMM_WORLD, &status);
+	for (k = 0; k < 3; k++)
+		MPI_Recv(inmsg[k], 3, MPI_UNSIGNED_CHAR, 0, TAG_READ, MPI_COMM_WORLD, &status);
 
-	/**
-	 * Pior caso 3 * 3 = 9
-	 * */
 	for (k = sk; k <= ek; k++)
 		for (l = sl; l <= el; l++)
 			count += board[k][l];
 	count -= board[i][j];
+
+	free_board(inmsg, 3);
 
 	return count;
 }
 
 void play(cell_t **board, cell_t **newboard, int size, int rank, int numtasks)
 {
-	int *inmsg = (int *)malloc(3 * sizeof(int));
-	int dest = 0;
-
 	int i, j, a;
 
 	/* for each cell, apply the rules of Life */
 	for (i = 0; i < size; i++)
 		for (j = rank; j < size; j += numtasks)
 		{
-			MPI_Send(inmsg, 3, MPI_INT, dest, TAG_READ, MPI_COMM_WORLD);
-
 			a = adjacent_to(board, size, i, j);
 			if (a == 2)
+				// Send
+				// MPI_Send();
+				// Recv
 				newboard[i][j] = board[i][j];
 			if (a == 3)
 				newboard[i][j] = 1;
@@ -129,9 +133,7 @@ int main(int argc, char **argv)
 {
 	double inicio, fim;
 	int numtasks, rank, root = 0;
-
-	int part, rest, offset = 0;
-	int *sendcount, *displs;
+	int part;
 
 	int i, j, size, steps;
 	cell_t **prev, **next, **tmp;
@@ -164,8 +166,6 @@ int main(int argc, char **argv)
 
 	if (rank == root)
 	{
-		next = allocate_board(size);
-
 		for (i = 0; i < size; i++)
 		{
 			for (j = 0; j < size; j++)
@@ -179,49 +179,12 @@ int main(int argc, char **argv)
 		inicio = MPI_Wtime();
 	}
 
+	next = allocate_board(size);
 	part = size / numtasks;
-	rest = size % numtasks;
-
-	sendcount = (int *)calloc(numtasks, sizeof(int));
-	displs = (int *)calloc(numtasks, sizeof(int));
-
-	for (i = 0; i < numtasks; i++)
-	{
-		sendcount[i] = part;
-		if (rest > 0)
-		{
-			sendcount[i]++;
-			rest--;
-		}
-		displs[i] = offset;
-		offset += sendcount[i];
-	}
-
-	tmp = allocate_board(size);
-
-	for (i = 0; i < size; i++)
-		MPI_Scatterv(prev[i], sendcount, displs, MPI_UNSIGNED_CHAR, tmp[i], sendcount[rank], MPI_UNSIGNED_CHAR, root, MPI_COMM_WORLD);
-
-	for (i = 0; i < size; i++)
-	{
-		offset = 0;
-		if (size % numtasks < rank)
-			offset++;
-		for (j = 0; j < part + offset; j++)
-			if (tmp[i][j])
-				printf("R(%d)[%2d,%2d]\n", rank, i, j);
-				// printf("R(%d)[%2d,%2d]\n", rank, i, j + rank * part);
-	}
 
 	for (i = 0; i < steps; i++)
 	{
-		// MPI_Status status;
-		// inmsg = (int *)malloc(3 * sizeof(int));
-		// MPI_Recv(inmsg, 3, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
 		// play(prev, next, size, rank, numtasks);
-
-		// for (i = 0; i < size; i++)
-		// 	MPI_Gather(next[i], size, MPI_UNSIGNED_CHAR, tmp[i], size, MPI_UNSIGNED_CHAR, root, MPI_COMM_WORLD);
 
 		/*
 		 * Rank 0 precisa sincronizar as matrizes
