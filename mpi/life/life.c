@@ -130,7 +130,7 @@ int main(int argc, char **argv)
 	double inicio, fim;
 	int numtasks, rank, root = 0;
 
-	int part, offset = 0;
+	int part, rest, offset = 0;
 	int *sendcount, *displs;
 
 	int i, j, size, steps;
@@ -166,7 +166,6 @@ int main(int argc, char **argv)
 	{
 		next = allocate_board(size);
 
-		printf("\n");
 		for (i = 0; i < size; i++)
 		{
 			for (j = 0; j < size; j++)
@@ -181,63 +180,45 @@ int main(int argc, char **argv)
 	}
 
 	part = size / numtasks;
+	rest = size % numtasks;
 
 	sendcount = (int *)calloc(numtasks, sizeof(int));
 	displs = (int *)calloc(numtasks, sizeof(int));
 
-	if (rank == root)
+	for (i = 0; i < numtasks; i++)
 	{
-		int rest = size % numtasks;
-		for (i = 0; i < numtasks; i++)
+		sendcount[i] = part;
+		if (rest > 0)
 		{
-			printf(" %d", i);
-			sendcount[i] = part;
-			if (rest > 0)
-			{
-				sendcount[i]++;
-				rest--;
-			}
-			displs[i] = offset;
-			offset += sendcount[i];
-
-			printf("sendcounts[%d] = %d\tdispls[%d] = %d\n", i, sendcount[i], i, displs[i]);
+			sendcount[i]++;
+			rest--;
 		}
-		printf("Foi embora");
+		displs[i] = offset;
+		offset += sendcount[i];
 	}
 
 	tmp = allocate_board(size);
 
-	MPI_Bcast(sendcount, numtasks, MPI_INT, root, MPI_COMM_WORLD);
-	MPI_Bcast(displs, numtasks, MPI_INT, root, MPI_COMM_WORLD);
+	for (i = 0; i < size; i++)
+		MPI_Scatterv(prev[i], sendcount, displs, MPI_UNSIGNED_CHAR, tmp[i], sendcount[rank], MPI_UNSIGNED_CHAR, root, MPI_COMM_WORLD);
 
 	for (i = 0; i < size; i++)
 	{
-		MPI_Scatterv(prev[i], sendcount, displs, MPI_UNSIGNED_CHAR, tmp, sendcount[rank], MPI_UNSIGNED_CHAR, root, MPI_COMM_WORLD);
-		// MPI_Scatter(prev[i], part, MPI_UNSIGNED_CHAR, tmp[i], part, MPI_UNSIGNED_CHAR, root, MPI_COMM_WORLD);
-	}
-
-	for (i = 0; i < size; i++)
-	{
-		for (j = 0; j < part; j++)
-		{
+		offset = 0;
+		if (size % numtasks < rank)
+			offset++;
+		for (j = 0; j < part + offset; j++)
 			if (tmp[i][j])
-				printf("rank %d [%d,%d] ", rank, i, j + rank * part);
-		}
-		printf("\n");
+				printf("R(%d)[%2d,%2d]\n", rank, i, j);
+				// printf("R(%d)[%2d,%2d]\n", rank, i, j + rank * part);
 	}
 
-	for (i = 0; i < 1; i++)
+	for (i = 0; i < steps; i++)
 	{
-		if (rank == root)
-		{
-			// MPI_Status status;
-			// inmsg = (int *)malloc(3 * sizeof(int));
-			// MPI_Recv(inmsg, 3, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
-		}
-		else
-		{
-			// play(prev, next, size, rank, numtasks);
-		}
+		// MPI_Status status;
+		// inmsg = (int *)malloc(3 * sizeof(int));
+		// MPI_Recv(inmsg, 3, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+		// play(prev, next, size, rank, numtasks);
 
 		// for (i = 0; i < size; i++)
 		// 	MPI_Gather(next[i], size, MPI_UNSIGNED_CHAR, tmp[i], size, MPI_UNSIGNED_CHAR, root, MPI_COMM_WORLD);
