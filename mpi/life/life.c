@@ -66,15 +66,15 @@ int adjacent_to(cell_t **board, int size, int i, int j)
 	return count;
 }
 
-void play(cell_t **board, cell_t **newboard, int size, int rank, int numtasks)
+void play(cell_t **board, cell_t **newboard, int width, int height, int rank, int numtasks)
 {
 	int i, j, a;
 
 	/* for each cell, apply the rules of Life */
-	for (i = 0; i < size; i++)
-		for (j = rank; j < size; j += numtasks)
+	for (i = 0; i < height; i++)
+		for (j = rank; j < width; j += numtasks)
 		{
-			a = adjacent_to(board, size, i, j);
+			a = adjacent_to(board, width, i, j);
 			if (a == 2)
 				newboard[i][j] = board[i][j];
 			if (a == 3)
@@ -132,7 +132,7 @@ int main(int argc, char **argv)
 	double inicio, fim;
 	int numtasks, rank, root = 0;
 
-	int part, rest, offset = 0, height;
+	int part, rest, offset = 0;
 	int *sendcount, *displs;
 
 	int i, j, size, steps;
@@ -164,33 +164,25 @@ int main(int argc, char **argv)
 
 	MPI_Bcast(&size, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
-	// if (rank == root)
-	// {
-	// 	next = allocate_board(size);
+	if (rank == root)
+	{
+		next = allocate_board(size);
 
-	// 	for (i = 0; i < size; i++)
-	// 	{
-	// 		for (j = 0; j < size; j++)
-	// 		{
-	// 			if (prev[i][j])
-	// 				printf("[%d, %d] ", i, j);
-	// 		}
-	// 		printf("\n");
-	// 	}
+		for (i = 0; i < size; i++)
+		{
+			for (j = 0; j < size; j++)
+			{
+				if (prev[i][j])
+					printf("[%d, %d] ", i, j);
+			}
+			printf("\n");
+		}
 
-	// 	inicio = MPI_Wtime();
-	// }
+		inicio = MPI_Wtime();
+	}
 
 	part = size / numtasks;
 	rest = size % numtasks;
-	if (rest != 0 && rest <= rank)
-	{
-		height = part + 1;
-	}
-	else
-	{
-		height = part;
-	}
 
 	sendcount = (int *)calloc(numtasks, sizeof(int));
 	displs = (int *)calloc(numtasks, sizeof(int));
@@ -220,43 +212,56 @@ int main(int argc, char **argv)
 		{
 			offset--;
 			if (i > 0)
-			{
 				offset--;
-			}
 		}
-
-		if (rank == numtasks - 1)
-			printf("rank %d i=%d S=%d D=%d O=%d\n", rank, i, sendcount[i], displs[i], offset);
 	}
 
-	tmp = allocate_board_partial(size, height);
-	next = allocate_board_partial(size, height);
+	tmp = allocate_board_partial(size, sendcount[rank]);
+	next = allocate_board_partial(size, sendcount[rank]);
 
 	if (rank != root)
-		prev = allocate_board_partial(size, height);
+		prev = allocate_board_partial(size, sendcount[rank]);
 
 	for (i = 0; i < size; i++)
 		MPI_Scatterv(prev[i], sendcount, displs, MPI_UNSIGNED_CHAR, tmp[i], sendcount[rank], MPI_UNSIGNED_CHAR, root, MPI_COMM_WORLD);
 
-	if (rank == numtasks - 1)
-		print_partial(tmp, size, height);
-
-	// for (i = 0; i < size; i++)
+	// for (i = 0; i < sendcount[rank]; i++)
 	// {
-	// 	offset = size % numtasks <= rank ? 1 : 0;
-
-	// 	for (j = 0; j < part + offset; j++)
+	// 	/**
+	// 	 * Nao permite que a ultima linha seja contabilizada
+	// 	 * caso o rank esteja entre o primeiro e o ultimo
+	// 	 * */
+	// 	if (i == size - 1 && rank < numtasks - 1)
+	// 		break;
+	// 	/**
+	// 	 * Nao contabiliza a primeira linha caso esteja
+	// 	 * no meio ou no fim
+	// 	 * */
+	// 	if (i == 0 && rank > 0)
+	// 		continue;
+	// 	for (j = 0; j < size; j++)
+	// 	{
 	// 		if (tmp[i][j])
-	// 			printf("R(%d)[%2d,%2d]\n", rank, i, j);
-	// 	// printf("R(%d)[%2d,%2d]\n", rank, i, j + rank * part);
+	// 			printf("%d [%2d,%2d] ", rank, i, j);
+	// 	}
+	// 	printf("\n");
 	// }
+
+	if (rank == 0){
+		print_partial(tmp, size, sendcount[rank]);
+		for(i = 0; i < sendcount[rank]; i++){
+			for(j = 0; j < size; j++){
+				
+			}
+		}
+	}
 
 	if (rank == root)
 		inicio = MPI_Wtime();
 
 	for (i = 0; i < 0; i++)
 	{
-		// play(prev, next, size, rank, numtasks);
+		play(tmp, next, size, sendcount[rank], rank, numtasks);
 
 		// for (i = 0; i < size; i++)
 		// 	MPI_Gather(next[i], size, MPI_UNSIGNED_CHAR, tmp[i], size, MPI_UNSIGNED_CHAR, root, MPI_COMM_WORLD);
