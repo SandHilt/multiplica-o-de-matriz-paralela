@@ -17,9 +17,6 @@
 #include <mpi.h>
 typedef unsigned char cell_t;
 
-#define TAG_READ 1
-#define TAG_WRITE 2
-
 cell_t **allocate_board_partial(int width, int height)
 {
 	cell_t **board = (cell_t **)malloc(sizeof(cell_t *) * width);
@@ -71,17 +68,12 @@ int adjacent_to(cell_t **board, int size, int i, int j)
 
 void play(cell_t **board, cell_t **newboard, int size, int rank, int numtasks)
 {
-	int *inmsg = (int *)malloc(3 * sizeof(int));
-	int dest = 0;
-
 	int i, j, a;
 
 	/* for each cell, apply the rules of Life */
 	for (i = 0; i < size; i++)
 		for (j = rank; j < size; j += numtasks)
 		{
-			MPI_Send(inmsg, 3, MPI_INT, dest, TAG_READ, MPI_COMM_WORLD);
-
 			a = adjacent_to(board, size, i, j);
 			if (a == 2)
 				newboard[i][j] = board[i][j];
@@ -238,6 +230,7 @@ int main(int argc, char **argv)
 	}
 
 	tmp = allocate_board_partial(size, height);
+	next = allocate_board_partial(size, height);
 
 	if (rank != root)
 		prev = allocate_board_partial(size, height);
@@ -245,7 +238,7 @@ int main(int argc, char **argv)
 	for (i = 0; i < size; i++)
 		MPI_Scatterv(prev[i], sendcount, displs, MPI_UNSIGNED_CHAR, tmp[i], sendcount[rank], MPI_UNSIGNED_CHAR, root, MPI_COMM_WORLD);
 
-	if (rank == 2)
+	if (rank == numtasks - 1)
 		print_partial(tmp, size, height);
 
 	// for (i = 0; i < size; i++)
@@ -263,9 +256,6 @@ int main(int argc, char **argv)
 
 	for (i = 0; i < 0; i++)
 	{
-		// MPI_Status status;
-		// inmsg = (int *)malloc(3 * sizeof(int));
-		// MPI_Recv(inmsg, 3, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
 		// play(prev, next, size, rank, numtasks);
 
 		// for (i = 0; i < size; i++)
@@ -293,6 +283,6 @@ int main(int argc, char **argv)
 	}
 	MPI_Finalize();
 	// print(prev, size);
-	// free_board(prev, size);
+	free_board(prev, size);
 	// free_board(next, size);
 }
