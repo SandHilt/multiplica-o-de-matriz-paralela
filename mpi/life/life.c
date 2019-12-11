@@ -200,29 +200,52 @@ int main(int argc, char **argv)
 		height = part;
 	}
 
-	printf("rank %d h = %d\n", rank, height);
-
 	sendcount = (int *)calloc(numtasks, sizeof(int));
 	displs = (int *)calloc(numtasks, sizeof(int));
 
 	for (i = 0; i < numtasks; i++)
 	{
 		sendcount[i] = part;
+		if (i == 0)
+		{
+			sendcount[i]++;
+		}
+		else if (i > 0 && i < numtasks - 1)
+		{
+			sendcount[i] += 2;
+		}
+
 		if (rest > 0)
 		{
 			sendcount[i]++;
 			rest--;
 		}
 		displs[i] = offset;
+
 		offset += sendcount[i];
+
+		if (i < numtasks - 1)
+		{
+			offset--;
+			if (i > 0)
+			{
+				offset--;
+			}
+		}
+
+		if (rank == numtasks - 1)
+			printf("rank %d i=%d S=%d D=%d O=%d\n", rank, i, sendcount[i], displs[i], offset);
 	}
 
 	tmp = allocate_board_partial(size, height);
 
+	if (rank != root)
+		prev = allocate_board_partial(size, height);
+
 	for (i = 0; i < size; i++)
 		MPI_Scatterv(prev[i], sendcount, displs, MPI_UNSIGNED_CHAR, tmp[i], sendcount[rank], MPI_UNSIGNED_CHAR, root, MPI_COMM_WORLD);
 
-	if (rank == 1)
+	if (rank == 2)
 		print_partial(tmp, size, height);
 
 	// for (i = 0; i < size; i++)
