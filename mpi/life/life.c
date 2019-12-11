@@ -17,9 +17,6 @@
 #include <mpi.h>
 typedef unsigned char cell_t;
 
-#define TAG_READ 1
-#define TAG_WRITE 2
-
 cell_t **allocate_board(int size)
 {
 	cell_t **board = (cell_t **)malloc(sizeof(cell_t *) * size);
@@ -56,9 +53,9 @@ int adjacent_to(cell_t **board, int size, int i, int j)
 	 * */
 	inmsg = allocate_board(3);
 	
-	MPI_Recv(inmsg, 3, MPI_UNSIGNED_CHAR, 0, TAG_READ, MPI_COMM_WORLD, &status);
-	for (k = 0; k < 3; k++)
-		MPI_Recv(inmsg[k], 3, MPI_UNSIGNED_CHAR, 0, TAG_READ, MPI_COMM_WORLD, &status);
+	// MPI_Recv(inmsg, 3, MPI_UNSIGNED_CHAR, 0, TAG_READ, MPI_COMM_WORLD, &status);
+	// for (k = 0; k < 3; k++)
+		// MPI_Recv(inmsg[k], 3, MPI_UNSIGNED_CHAR, 0, TAG_READ, MPI_COMM_WORLD, &status);
 
 	for (k = sk; k <= ek; k++)
 		for (l = sl; l <= el; l++)
@@ -135,7 +132,7 @@ int main(int argc, char **argv)
 	int numtasks, rank, root = 0;
 	int part;
 
-	int i, j, size, steps;
+	int i, j, k, size, steps;
 	cell_t **prev, **next, **tmp;
 
 #ifdef DEBUG
@@ -164,27 +161,38 @@ int main(int argc, char **argv)
 
 	MPI_Bcast(&size, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
+	// if (rank == root)
+	// {
+	// 	next = allocate_board(size);
+
+	// 	for (i = 0; i < size; i++)
+	// 	{
+	// 		for (j = 0; j < size; j++)
+	// 		{
+	// 			if (prev[i][j])
+	// 				printf("[%d, %d] ", i, j);
+	// 		}
+	// 		printf("\n");
+	// 	}
+	// }
+
 	if (rank == root)
-	{
-		for (i = 0; i < size; i++)
-		{
-			for (j = 0; j < size; j++)
-			{
-				if (prev[i][j])
-					printf("[%d, %d] ", i, j);
-			}
-			printf("\n");
-		}
-
 		inicio = MPI_Wtime();
-	}
 
-	next = allocate_board(size);
-	part = size / numtasks;
-
-	for (i = 0; i < steps; i++)
+	for (i = 0; i < 0; i++)
 	{
-		// play(prev, next, size, rank, numtasks);
+		if(rank == root){
+			for(j = 0; j < size; j++)
+			for(k = 0; k < size; k++){
+				if(prev[j][k]){
+					tmp = allocate_board(3);
+				}
+			}
+		}
+		// play(tmp, next, size, sendcount[rank], rank, numtasks);
+
+		// for (i = 0; i < size; i++)
+		// 	MPI_Gather(next[i], size, MPI_UNSIGNED_CHAR, tmp[i], size, MPI_UNSIGNED_CHAR, root, MPI_COMM_WORLD);
 
 		/*
 		 * Rank 0 precisa sincronizar as matrizes
