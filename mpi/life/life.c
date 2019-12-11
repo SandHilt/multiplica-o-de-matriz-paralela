@@ -247,14 +247,8 @@ int main(int argc, char **argv)
 	// 	printf("\n");
 	// }
 
-	if (rank == 0){
+	if (rank == root)
 		print_partial(tmp, size, sendcount[rank]);
-		for(i = 0; i < sendcount[rank]; i++){
-			for(j = 0; j < size; j++){
-				
-			}
-		}
-	}
 
 	if (rank == root)
 		inicio = MPI_Wtime();
