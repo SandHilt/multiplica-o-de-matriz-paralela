@@ -133,6 +133,7 @@ int main(int argc, char **argv)
 	int numtasks, rank, root = 0;
 
 	int part, rest, offset = 0;
+	div_t p;
 	int *sendcount, *displs;
 
 	int i, j, size, steps;
@@ -181,8 +182,10 @@ int main(int argc, char **argv)
 		inicio = MPI_Wtime();
 	}
 
-	part = size / numtasks;
-	rest = size % numtasks;
+	p = div(size, numtasks);
+	
+	part = p.quot;
+	rest = p.rem;
 
 	sendcount = (int *)calloc(numtasks, sizeof(int));
 	displs = (int *)calloc(numtasks, sizeof(int));
