@@ -24,17 +24,15 @@ void main(int argc, char **argv)
         {
             #pragma omp section
             {
-                #pragma omp ordered 
+                #pragma omp parallel for ordered
+                for(i = 2; i < N; i++)
                 {
-                    for(i = 2; i < N; i++)
-                    {
-                        F[i] = F[i - 2] + F[i - 1];
-                    }
+                    F[i] = F[i - 2] + F[i - 1];
                 }
             }
             #pragma omp section
             {
-                #pragma parallel for reduction(+:sum)
+                #pragma omp parallel for reduction(+:sum)
                 for(j = 0; j < N; j++)
                 {
                     sum += F[j];
