@@ -13,9 +13,9 @@ do
         
         for i in 2 4
         do
-            if [ $p -ne 'fibonacci' ]
+            if [ "$p" != 'fibonacci' ]
             then
-            echo "Rodando o MPI com $i CPUS";
+                echo "Rodando o MPI com $i CPUS";
                 mpirun --use-hwthread-cpus -np $i ./mpi/$(eval echo $p)/$(eval echo $p).out >> ./$(eval echo $p)_mpi_$i.dat;
             fi
             echo "Rodando o OMP com $i CPUS";
