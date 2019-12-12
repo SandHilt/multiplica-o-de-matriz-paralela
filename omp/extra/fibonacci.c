@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <omp.h>
 
-#define N 10
+#define N 2000
 
 void main(int argc, char **argv)
 {
@@ -24,7 +24,7 @@ void main(int argc, char **argv)
         {
             #pragma omp section
             {
-                #pragma omp parallel for ordered
+                #pragma omp critial for ordered
                 for(i = 2; i < N; i++)
                 {
                     F[i] = F[i - 2] + F[i - 1];
