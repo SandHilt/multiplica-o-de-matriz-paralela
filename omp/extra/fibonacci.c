@@ -1,12 +1,14 @@
 #include <stdio.h>
 #include <omp.h>
 
-#define N 5
+#define N 10
 
 void main(int argc, char **argv)
 {
     int F[N];
     double inicio, fim, duracao;
+
+    const int T = 4;
 
     int i, j;
     int sum;
@@ -16,27 +18,34 @@ void main(int argc, char **argv)
     sum = 0;
 
     inicio = omp_get_wtime();
-    #pragma omp parallel sections
+    #pragma omp parallel private(i, j) shared(F) num_threads(T)
     {
-        #pragma omp section private(i)
+        #pragma omp sections
         {
-            for(i = 2; i < N; i++)
+            #pragma omp section
             {
-                F[i] = F[i - 2] + F[i - 1];
+                #pragma omp ordered 
+                {
+                    for(i = 2; i < N; i++)
+                    {
+                        F[i] = F[i - 2] + F[i - 1];
+                    }
+                }
             }
-        }
-        #pragma omp section private(j)
-        {
-            #pragma parallel for reduction(+:sum)
-            for(j = 0; j < N; j++)
+            #pragma omp section
             {
-                sum += F[j];
+                #pragma parallel for reduction(+:sum)
+                for(j = 0; j < N; j++)
+                {
+                    sum += F[j];
+                }
             }
         }
     }
     fim = omp_get_wtime();
     duracao = fim - inicio;
 
+    printf("Soma dos %d termos de fibonacci eh %d\n", N, sum);
     printf("%.5f\n", duracao);
 
 }
