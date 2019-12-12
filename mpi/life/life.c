@@ -191,7 +191,7 @@ int main(int argc, char **argv)
 	MPI_Finalize();
 	duracao = fim - inicio;
 	if (rank == root)
-		printf("%.5f", duracao);
+		printf("%.5f\n", duracao);
 	// print(prev, size);
 	free_board(prev, size);
 	free_board(next, size);

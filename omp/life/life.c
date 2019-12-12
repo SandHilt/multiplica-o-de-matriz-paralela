@@ -144,7 +144,7 @@ int main(int argc, char **argv)
 		prev = tmp;
 	}
 	fim = omp_get_wtime();
-	printf("%.5f", fim - inicio);
+	printf("%.5f\n", fim - inicio);
 	// print(prev, size);
 	free_board(prev, size);
 	free_board(next, size);

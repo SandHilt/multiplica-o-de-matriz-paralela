@@ -142,7 +142,7 @@ int main()
 	}
 	fim = clock();
 	duracao = (double)(fim - inicio) / CLOCKS_PER_SEC;
-	printf("%.5f", duracao);
+	printf("%.5f\n", duracao);
 	// print(prev, size);
 	free_board(prev, size);
 	free_board(next, size);

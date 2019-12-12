@@ -307,7 +307,7 @@ int main(int argc, char **argv)
 	if (rank == root)
 	{
 		fim = MPI_Wtime();
-		// printf("%.5f", fim - inicio);
+		// printf("%.5f\n", fim - inicio);
 	}
 	MPI_Finalize();
 	// print(prev, size);
