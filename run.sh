@@ -1,7 +1,7 @@
 #!/bin/bash
 echo "Script esta rodando...";
 
-for p in 'matriz' 'fibonacci'
+for p in fibonacci matriz
 do
     echo "Projeto $p"
     for i in $(eval echo {1.."$1"})

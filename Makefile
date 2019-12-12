@@ -1,7 +1,7 @@
 SUBDIRS := $(wildcard omp/**/.) $(wildcard mpi/**/.)\
 	$(wildcard serial/**/.)
 
-SIZE=1000
+SIZE=200
 export SIZE
 
 NUMBER_TESTS=30

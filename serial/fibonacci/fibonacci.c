@@ -1,11 +1,13 @@
 #include <stdio.h>
 #include <time.h>
 
-#define N 2000
+#ifndef SIZE
+#define SIZE 2000
+#endif
 
 void main(int argc, char **argv)
 {
-    int F[N];
+    int F[SIZE];
     clock_t inicio, fim;
     double duracao;
 
@@ -18,11 +20,11 @@ void main(int argc, char **argv)
 
     inicio = clock();
 
-    for (i = 2; i < N; i++)
+    for (i = 2; i < SIZE; i++)
     {
         F[i] = F[i - 2] + F[i - 1];
     }
-    for (j = 0; j < N; j++)
+    for (j = 0; j < SIZE; j++)
     {
         sum += F[j];
     }

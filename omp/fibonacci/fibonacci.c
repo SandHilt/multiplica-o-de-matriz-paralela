@@ -1,11 +1,14 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <omp.h>
 
-#define N 2000
+#ifndef SIZE
+#define SIZE 2000
+#endif
 
 void main(int argc, char **argv)
 {
-    int F[N];
+    int F[SIZE];
     double inicio, fim, duracao;
 
     const int T = atoi(argv[1]);
@@ -25,7 +28,7 @@ void main(int argc, char **argv)
 #pragma omp section
             {
 #pragma omp critial for ordered
-                for (i = 2; i < N; i++)
+                for (i = 2; i < SIZE; i++)
                 {
                     F[i] = F[i - 2] + F[i - 1];
                 }
@@ -34,7 +37,7 @@ void main(int argc, char **argv)
             {
 #pragma omp parallel for reduction(+ \
                                    : sum)
-                for (j = 0; j < N; j++)
+                for (j = 0; j < SIZE; j++)
                 {
                     sum += F[j];
                 }
