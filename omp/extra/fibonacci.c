@@ -40,10 +40,12 @@ void main(int argc, char **argv)
             }
         }
     }
+    #pragma omp barrier
+    {
     fim = omp_get_wtime();
     duracao = fim - inicio;
 
     printf("Soma dos %d termos de fibonacci eh %d\n", N, sum);
     printf("%.5f\n", duracao);
-
+    }
 }
