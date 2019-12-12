@@ -96,8 +96,8 @@ void play(cell_t **board, cell_t **newboard, int width, int height, int rank, in
 	}
 
 	/* for each cell, apply the rules of Life */
-	for (i = x; i < y; i++)
-		for (j = 0; j < width; j++)
+	for (i = 0; i < width; i++)
+		for (j = 0; j < height; j++)
 		{
 			a = adjacent_to(board, width, height, i, j);
 			// if (rank == 0 && a > 0)
@@ -112,7 +112,7 @@ void play(cell_t **board, cell_t **newboard, int width, int height, int rank, in
 				newboard[i][j] = 0;
 		}
 
-	if(rank == 0)
+	if (rank == 0)
 		print_partial(newboard, width, height);
 }
 
@@ -243,7 +243,7 @@ int main(int argc, char **argv)
 			offset--;
 		}
 
-		// printf("rank %d i=%d S=%2d D=%2d O=%2d\n", rank, i, recvcount[i], rdispls[i], roffset);
+		printf("rank %d i=%d S=%2d D=%2d O=%2d\n", rank, i, recvcount[i], rdispls[i], roffset);
 	}
 
 	tmp = allocate_board_partial(size, sendcount[rank]);
@@ -279,15 +279,15 @@ int main(int argc, char **argv)
 			// print(next, size);
 		}
 
-		// for (i = 0; i < size; i++)
-		// {
-		// 	MPI_Gatherv(next[i], size, MPI_UNSIGNED_CHAR, aux[i], recvcount, rdispls, MPI_UNSIGNED_CHAR, root, MPI_COMM_WORLD);
-		// }
+		for (i = 0; i < size; i++)
+		{
+			MPI_Gatherv(next[i], recvcount[rank], MPI_UNSIGNED_CHAR, aux[i], recvcount, rdispls, MPI_UNSIGNED_CHAR, root, MPI_COMM_WORLD);
+		}
 
-		// if (rank == 1)
-		// {
-		// 	print(aux, size);
-		// }
+		if (rank == root)
+		{
+			print(aux, size);
+		}
 
 		/*
 		 * Rank 0 precisa sincronizar as matrizes
