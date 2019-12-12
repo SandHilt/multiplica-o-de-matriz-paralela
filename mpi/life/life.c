@@ -148,7 +148,7 @@ int main(int argc, char **argv)
 
 	next = allocate_board(size);
 	inicio = MPI_Wtime();
-	for (i = 0; i < 1; i++)
+	for (i = 0; i < steps; i++)
 	{
 
 		play(prev, next, size, rank, numtasks);
@@ -182,9 +182,10 @@ int main(int argc, char **argv)
 
 		if (rank == root)
 			print(next, size);
-		// 	tmp = next;
-		// 	next = prev;
-		// 	prev = tmp;
+
+		// tmp = next;
+		// next = prev;
+		// prev = tmp;
 	}
 	fim = MPI_Wtime();
 	MPI_Finalize();
