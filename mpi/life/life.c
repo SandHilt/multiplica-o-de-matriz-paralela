@@ -66,31 +66,6 @@ int adjacent_to(cell_t **board, int width, int height, int i, int j)
 	return count;
 }
 
-void play(cell_t **board, cell_t **newboard, int width, int height, int rank, int numtasks)
-{
-	int i, j, a;
-
-	int x, y;
-
-	y = rank < numtasks - 1 ? height - 1 : height;
-	x = rank > 0 ? 1 : 0;
-
-	/* for each cell, apply the rules of Life */
-	for (i = x; i < y; i++)
-		for (j = 0; j < width; j++)
-		{
-			a = adjacent_to(board, width, height, i, j);
-			if (a == 2)
-				newboard[i][j] = board[i][j];
-			if (a == 3)
-				newboard[i][j] = 1;
-			if (a < 2)
-				newboard[i][j] = 0;
-			if (a > 3)
-				newboard[i][j] = 0;
-		}
-}
-
 void print_partial(cell_t **board, int width, int height)
 {
 	int i, j;
@@ -103,6 +78,42 @@ void print_partial(cell_t **board, int width, int height)
 		/* followed by a carriage return */
 		printf("\n");
 	}
+}
+
+void play(cell_t **board, cell_t **newboard, int width, int height, int rank, int numtasks)
+{
+	int i, j, a;
+
+	int x, y;
+
+	y = rank < numtasks - 1 ? height - 1 : height;
+	x = rank > 0 ? 1 : 0;
+
+	if (rank == 0)
+	{
+		print_partial(board, width, height);
+		printf("rank %d width %d height %d (%d,%d).\n", rank, width, height, x, y);
+	}
+
+	/* for each cell, apply the rules of Life */
+	for (i = x; i < y; i++)
+		for (j = 0; j < width; j++)
+		{
+			a = adjacent_to(board, width, height, i, j);
+			// if (rank == 0 && a > 0)
+			// 	printf("rank %d (%2d,%2d)=%d\n", rank, i, j, a);
+			if (a == 2)
+				newboard[i][j] = board[i][j];
+			if (a == 3)
+				newboard[i][j] = 1;
+			if (a < 2)
+				newboard[i][j] = 0;
+			if (a > 3)
+				newboard[i][j] = 0;
+		}
+
+	if(rank == 0)
+		print_partial(newboard, width, height);
 }
 
 /* print the life board */
@@ -253,13 +264,20 @@ int main(int argc, char **argv)
 	{
 		MPI_Scatterv(prev[i], sendcount, displs, MPI_UNSIGNED_CHAR, tmp[i], sendcount[rank], MPI_UNSIGNED_CHAR, root, MPI_COMM_WORLD);
 	}
+	free_board(prev, size);
 
 	// print_partial(tmp, size, sendcount[rank]);
 
-	for (i = 0; i < 0; i++)
+	for (i = 0; i < 1; i++)
 	{
 
 		play(tmp, next, size, sendcount[rank], rank, numtasks);
+		if (rank == 0)
+		{
+			// print_partial(tmp, size, sendcount[rank]);
+			// print_partial(next, size, sendcount[rank]);
+			// print(next, size);
+		}
 
 		// for (i = 0; i < size; i++)
 		// {
