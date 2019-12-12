@@ -19,10 +19,10 @@ typedef unsigned char cell_t;
 
 cell_t **allocate_board(int size)
 {
-	cell_t **board = (cell_t **)malloc(sizeof(cell_t *) * size);
+	cell_t **board = (cell_t **)calloc(size, sizeof(cell_t *));
 	int i;
 	for (i = 0; i < size; i++)
-		board[i] = (cell_t *)malloc(sizeof(cell_t) * size);
+		board[i] = (cell_t *)calloc(size, sizeof(cell_t));
 	return board;
 }
 
@@ -52,11 +52,11 @@ int adjacent_to(cell_t **board, int size, int i, int j)
 	return count;
 }
 
-void play(cell_t **board, cell_t **newboard, int size)
+void play(cell_t **board, cell_t **newboard, int size, int rank, int numtasks)
 {
 	int i, j, a;
 	/* for each cell, apply the rules of Life */
-	for (i = 0; i < size; i++)
+	for (i = rank; i < size; i += numtasks)
 		for (j = 0; j < size; j++)
 		{
 			a = adjacent_to(board, size, i, j);
@@ -114,8 +114,10 @@ int main(int argc, char **argv)
 	int rank, numtasks, root = 0;
 
 	int size, steps;
-	cell_t **prev, **next, **tmp;
-	int i, j;
+	cell_t **prev, **next, **tmp, *aux;
+	int i, j, k, l;
+
+	MPI_Status status;
 
 	MPI_Init(&argc, &argv);
 	MPI_Comm_size(MPI_COMM_WORLD, &numtasks);
@@ -137,25 +139,56 @@ int main(int argc, char **argv)
 #endif
 
 	MPI_Bcast(&size, 1, MPI_INT, root, MPI_COMM_WORLD);
-	
-	if(rank != root)
+
+	if (rank != root)
 		prev = allocate_board(size);
 
-	for(i = 0; i < size; i++)
+	for (i = 0; i < size; i++)
 		MPI_Bcast(prev[i], size, MPI_UNSIGNED_CHAR, root, MPI_COMM_WORLD);
 
 	next = allocate_board(size);
 	inicio = MPI_Wtime();
-	for (i = 0; i < steps; i++)
+	for (i = 0; i < 1; i++)
 	{
-		play(prev, next, size);
+
+		play(prev, next, size, rank, numtasks);
 #ifdef DEBUG
 		printf("%d ----------\n", i);
 		print(next, size);
 #endif
-		tmp = next;
-		next = prev;
-		prev = tmp;
+		if (rank == 1)
+			print(next, size);
+
+		if (rank == root)
+		{
+			aux = (cell_t *)calloc(size, sizeof(cell_t));
+			for (j = 0; j < size; j++)
+			{
+				MPI_Recv(aux, size, MPI_UNSIGNED_CHAR, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+				printf("rank %d j=%d\n", status.MPI_SOURCE, status.MPI_TAG);
+
+				if (status.MPI_TAG % numtasks == status.MPI_SOURCE)
+					for (k = 0; k < size; k++)
+					{
+						next[status.MPI_TAG][k] = aux[k];
+					}
+			}
+		}
+		else
+		{
+			for (j = 0; j < size; j++)
+			{
+				printf("Enviando rank %d com j=%d\n", rank, j);
+				MPI_Send(next[j], size, MPI_UNSIGNED_CHAR, 0, j, MPI_COMM_WORLD);
+			}
+		}
+
+		MPI_Barrier(MPI_COMM_WORLD);
+		if (rank == root)
+			print(next, size);
+		// 	tmp = next;
+		// 	next = prev;
+		// 	prev = tmp;
 	}
 	fim = MPI_Wtime();
 	MPI_Finalize();
