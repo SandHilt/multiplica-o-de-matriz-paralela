@@ -156,37 +156,30 @@ int main(int argc, char **argv)
 		printf("%d ----------\n", i);
 		print(next, size);
 #endif
-		if (rank == 1)
-			print(next, size);
+		// if (rank == 1)
+		// 	print(next, size);
 
 		if (rank == root)
 		{
 			aux = (cell_t *)calloc(size, sizeof(cell_t));
 			for (l = 0; l < numtasks - 1; l++)
-			{
 				for (j = 0; j < size; j++)
 				{
 					MPI_Recv(aux, size, MPI_UNSIGNED_CHAR, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
-					printf("rank %d j=%d\n", status.MPI_SOURCE, status.MPI_TAG);
+					// printf("rank %d j=%d\n", status.MPI_SOURCE, status.MPI_TAG);
 
 					if (status.MPI_TAG % numtasks == status.MPI_SOURCE)
 						for (k = 0; k < size; k++)
-						{
 							next[status.MPI_TAG][k] = aux[k];
-						}
 				}
-			}
 		}
 		else
-		{
 			for (j = 0; j < size; j++)
 			{
-				printf("Enviando rank %d com j=%d\n", rank, j);
+				// printf("Enviando rank %d com j=%d\n", rank, j);
 				MPI_Send(next[j], size, MPI_UNSIGNED_CHAR, 0, j, MPI_COMM_WORLD);
 			}
-		}
 
-		MPI_Barrier(MPI_COMM_WORLD);
 		if (rank == root)
 			print(next, size);
 		// 	tmp = next;
