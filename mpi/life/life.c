@@ -133,8 +133,9 @@ int main(int argc, char **argv)
 	int numtasks, rank, root = 0;
 
 	int part, rest, offset = 0;
-	div_t p;
+
 	int *sendcount, *displs;
+	// int *recvcount, *rdispls;
 
 	int i, j, size, steps;
 	cell_t **prev, **next, **tmp;
@@ -154,6 +155,9 @@ int main(int argc, char **argv)
 		MPI_Abort(MPI_COMM_WORLD, MPI_ERR_SIZE);
 	}
 
+	/**
+	 * Rank lee o arquivo
+	 * */
 	if (rank == root)
 	{
 		FILE *f = stdin;
@@ -163,12 +167,13 @@ int main(int argc, char **argv)
 		fclose(f);
 	}
 
+	/**
+	 * Envia o tamanho para os outros
+	 * */
 	MPI_Bcast(&size, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
 	if (rank == root)
 	{
-		next = allocate_board(size);
-
 		for (i = 0; i < size; i++)
 		{
 			for (j = 0; j < size; j++)
@@ -182,10 +187,8 @@ int main(int argc, char **argv)
 		inicio = MPI_Wtime();
 	}
 
-	p = div(size, numtasks);
-	
-	part = p.quot;
-	rest = p.rem;
+	part = size / numtasks;
+	rest = size % numtasks;
 
 	sendcount = (int *)calloc(numtasks, sizeof(int));
 	displs = (int *)calloc(numtasks, sizeof(int));
@@ -193,37 +196,53 @@ int main(int argc, char **argv)
 	for (i = 0; i < numtasks; i++)
 	{
 		sendcount[i] = part;
-		if (i == 0)
-		{
-			sendcount[i]++;
-		}
-		else if (i > 0 && i < numtasks - 1)
-		{
-			sendcount[i] += 2;
-		}
 
+		/**
+		 * Resto da divisao fica nas partes do inicio
+		 * */
 		if (rest > 0)
 		{
 			sendcount[i]++;
 			rest--;
 		}
+		
+		/*
+		 * Compartilhando area externa 
+		*/
+		if (i > 0 && i < numtasks - 1)
+		{
+			sendcount[i] += 2;
+		}
+		else
+		{
+			sendcount[i]++;
+		}
+
 		displs[i] = offset;
 
-		offset += sendcount[i];
 
-		if (i < numtasks - 1)
+		/**
+		 * Offset tem que comecar na primeira
+		 * parte compartilhada
+		 * */
+		offset += sendcount[i];
+		if (i > 0 && i < numtasks - 1)
+		{
+			offset -= 2;
+		}
+		else
 		{
 			offset--;
-			if (i > 0)
-				offset--;
 		}
+
+		printf("rank %d i=%d S=%2d D=%2d O=%2d\n", rank, i, sendcount[i], displs[i], offset);
 	}
 
 	tmp = allocate_board_partial(size, sendcount[rank]);
 	next = allocate_board_partial(size, sendcount[rank]);
 
 	if (rank != root)
-		prev = allocate_board_partial(size, sendcount[rank]);
+		prev = allocate_board(size);
 
 	for (i = 0; i < size; i++)
 		MPI_Scatterv(prev[i], sendcount, displs, MPI_UNSIGNED_CHAR, tmp[i], sendcount[rank], MPI_UNSIGNED_CHAR, root, MPI_COMM_WORLD);
@@ -250,7 +269,7 @@ int main(int argc, char **argv)
 	// 	printf("\n");
 	// }
 
-	if (rank == root)
+	if (rank == 1)
 		print_partial(tmp, size, sendcount[rank]);
 
 	if (rank == root)
@@ -285,6 +304,6 @@ int main(int argc, char **argv)
 	}
 	MPI_Finalize();
 	// print(prev, size);
-	free_board(prev, size);
+	// free_board(prev, size);
 	// free_board(next, size);
 }
