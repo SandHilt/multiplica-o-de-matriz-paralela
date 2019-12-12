@@ -1,6 +1,6 @@
 CC=gcc
 
-FLAGS=-fopenmp
+FLAGS=-fopenmp -DSIZE_F=${SIZE_F}
 
 all: fibonacci
 

@@ -1,6 +1,6 @@
 CC=gcc
 
-FLAGS=
+FLAGS=-DSIZE_F=${SIZE_F}
 
 all: fibonacci
 

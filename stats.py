@@ -29,11 +29,9 @@ for projeto in ['matriz', 'fibonacci']:
     boxdata = []
 
     if projeto == 'fibonacci':
-        estilos.remove('omp_2')
-        parallel.remove('omp_2')
-
-        estilos.remove('omp_4')
-        parallel.remove('omp_4')
+        for i in [2, 4]:
+            estilos.remove('mpi_{:d}'.format(i))
+            parallel.remove('mpi_{:d}'.format(i))
 
     for estilo in estilos:
         filename = '{:s}_{:s}.dat'.format(projeto, estilo)

@@ -1,8 +1,13 @@
 SUBDIRS := $(wildcard omp/**/.) $(wildcard mpi/**/.)\
 	$(wildcard serial/**/.)
 
-SIZE=200
+# Para Matriz
+SIZE=500
 export SIZE
+
+# Para fibonacci
+SIZE_F=1000
+export SIZE_F
 
 NUMBER_TESTS=30
 
