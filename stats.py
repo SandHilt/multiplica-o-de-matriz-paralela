@@ -22,7 +22,7 @@ if len(argv) == 2:
     size = argv[1]
 
 
-for projeto in ['matriz', 'fibonacci']:
+for projeto in ['matriz', 'fibonacci', 'life_life', 'life_judge']:
     serial = 0
     speedup = []
     eficiencia = []

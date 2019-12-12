@@ -24,6 +24,26 @@ do
     done
 done
 
+echo "Projeto Life"
+for i in $(eval echo {1.."$1"})
+do 
+    printf '%s\n' --------------------;
+    echo "Teste $i"
+    for j in life judge
+    do
+        ./serial/life/life.out < ./serial/life/"$j".in >> ./life_"$j"_serial.dat;
+
+        for k in omp
+        do
+            for p in 2 4
+            do
+                echo "Rodando o $k com $p CPUS";
+                ./$(eval echo $k)/life/life.out $p < ./"$k"/life/"$j".in >> ./life_"$j"_$(eval echo $k).dat;
+            done
+        done
+    done
+done
+
 printf '%s\n' --------------------;
 echo "🍺 Rodei todos os testes";
 

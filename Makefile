@@ -9,7 +9,7 @@ export SIZE
 SIZE_F=1000
 export SIZE_F
 
-NUMBER_TESTS=30
+NUMBER_TESTS=2
 
 all: $(SUBDIRS)
 
